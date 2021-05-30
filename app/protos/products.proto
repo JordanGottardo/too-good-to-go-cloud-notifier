@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+service ProductsManager {
+    rpc GetProducts (ProductRequest) returns (ProductResponse) {}
+ }
+
+ message ProductRequest {
+     string user = 1;
+ }
+
+ message ProductResponse {
+     string id = 1;
+ }
