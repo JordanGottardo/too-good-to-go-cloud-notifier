@@ -128,3 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /scripts/invoke-app.ps1
+/scripts/invoke_app.ps1

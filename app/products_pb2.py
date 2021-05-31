@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0eproducts.proto\"\x1e\n\x0eProductRequest\x12\x0c\n\x04user\x18\x01 \x01(\t\"\x1d\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t2E\n\x0fProductsManager\x12\x32\n\x0bGetProducts\x12\x0f.ProductRequest\x1a\x10.ProductResponse\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x0eproducts.proto\"\x1e\n\x0eProductRequest\x12\x0c\n\x04user\x18\x01 \x01(\t\"\x1d\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t2G\n\x0fProductsManager\x12\x34\n\x0bGetProducts\x12\x0f.ProductRequest\x1a\x10.ProductResponse\"\x00\x30\x01\x62\x06proto3'
 )
 
 
@@ -116,7 +116,7 @@ _PRODUCTSMANAGER = _descriptor.ServiceDescriptor(
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
   serialized_start=81,
-  serialized_end=150,
+  serialized_end=152,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetProducts',

@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 service ProductsManager {
-    rpc GetProducts (ProductRequest) returns (ProductResponse) {}
+    rpc GetProducts (ProductRequest) returns (stream ProductResponse) {}
  }
 
  message ProductRequest {
