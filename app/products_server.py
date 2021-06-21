@@ -16,7 +16,7 @@ class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
     def GetProducts(self, request, context):
         print(f"Received request for user {request.user}")
         for item in self.client.GetProducts():
-            item["item"]["item_id"]
+            print(f"Retrieved {item['item']['item_id']}")
             yield products_pb2.ProductResponse(id=item["item"]["item_id"])
 
 
