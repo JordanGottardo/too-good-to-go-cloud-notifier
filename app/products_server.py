@@ -7,6 +7,7 @@ import grpc
 import products_pb2
 import products_pb2_grpc
 import threading
+from event import Event
 
 
 class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
@@ -17,14 +18,15 @@ class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
         self.logger.setLevel(logging.DEBUG)
         self.logger.info("ProductsQueue constructor")
         self.logger.info("Constructor")
-        self.client = TooGoodToGoClient(email, password)
-        self.productsQueue = ProductsQueue()
+        client = TooGoodToGoClient(email, password)
+        client.StartMonitor()
+        self.productsQueue = ProductsQueue(client)
 
     def GetProducts(self, request, context):
         self.logger.info(f"Received request for user {request.user}")
         print(threading.get_ident())
 
-        self.productsQueue.startAdd()
+        # self.productsQueue.startAdd()
 
         for item in self.productsQueue:
             self.logger.debug(f"Gotten {item}")

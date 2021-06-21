@@ -3,16 +3,19 @@ import threading
 import time
 import products_pb2
 import logging
+from too_good_to_go_client import TooGoodToGoClient
 
 
 class ProductsQueue():
 
-    def __init__(self):
+    def __init__(self, tgtgClient: TooGoodToGoClient):
         logging.basicConfig(format="%(threadName)s:%(message)s")
         self.logger = logging.getLogger("ProductsQueue")
         self.logger.setLevel(logging.DEBUG)
         self.logger.info("ProductsQueue constructor")
         self.queue = queue.Queue()
+        self.client = tgtgClient
+        self.client.AddEventHandler(self.__productsReceivedEventHandler)
 
     def __iter__(self):
         self.logger.debug("Iter")
@@ -30,21 +33,26 @@ class ProductsQueue():
         self.logger.debug("add_response")
         self.queue.put(products_pb2.ProductResponse(id=productId))
 
-    def __addTest(self):
-        self.logger.debug("Sleeping for 10 sec")
-        print(threading.get_ident())
-        time.sleep(10)
-        self.add_response("123")
-        time.sleep(5)
-        self.add_response("456")
-        time.sleep(5)
-        self.add_response("789")
+    # def __addTest(self):
+    #     self.logger.debug("Sleeping for 10 sec")
+    #     print(threading.get_ident())
+    #     time.sleep(10)
+    #     self.add_response("123")
+    #     time.sleep(5)
+    #     self.add_response("456")
+    #     time.sleep(5)
+    #     self.add_response("789")
 
-    def startAdd(self):
-        self.logger.debug("StartAdd")
-        print(threading.get_ident())
-        self.t = threading.Thread(target=self.__addTest, daemon=True)
-        self.t.start()
+    def __productsReceivedEventHandler(self, products):
+        for product in products:
+            self.logger.debug(f"__productsReceivedEventHandler {product['item']['item_id']}")
+            self.add_response(product['item']['item_id'])
+
+    # def startAdd(self):
+    #     self.logger.debug("StartAdd")
+    #     print(threading.get_ident())
+    #     self.t = threading.Thread(target=self.__addTest, daemon=True)
+    #     self.t.start()
 
     # def __init__(self):
     #     print("ProductsQueue constructor")
