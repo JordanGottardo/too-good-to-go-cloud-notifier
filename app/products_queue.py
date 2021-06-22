@@ -1,6 +1,7 @@
 import queue
 import threading
 import time
+from product import Product
 import products_pb2
 import logging
 from too_good_to_go_client import TooGoodToGoClient
@@ -12,6 +13,7 @@ class ProductsQueue():
         self.__InitLogging()
         self.logger.info("ProductsQueue constructor")
         self.queue = queue.Queue()
+        self.set = {}
         self.client = tgtgClient
         self.client.AddEventHandler(self.__productsReceivedEventHandler)
 
@@ -27,11 +29,13 @@ class ProductsQueue():
     def add_response(self, productId):
         self.queue.put(products_pb2.ProductResponse(id=productId))
 
-    def __productsReceivedEventHandler(self, products):
+    def __productsReceivedEventHandler(self, products: list[Product]):
         for product in products:
-            self.logger.debug(
-                f"__productsReceivedEventHandler {product['item']['item_id']}")
-            self.add_response(product['item']['item_id'])
+            if (product not in self.set): # TODO also check for timestamp
+                self.logger.debug(
+                f"__productsReceivedEventHandler {product.itemId}")
+                self.set #TODO add to set
+                self.add_response(product.itemId)
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
