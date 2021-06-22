@@ -6,36 +6,31 @@ from products_queue import ProductsQueue
 import grpc
 import products_pb2
 import products_pb2_grpc
-import threading
 from event import Event
 
 
 class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
 
     def __init__(self, email, password):
-        logging.basicConfig(format="%(threadName)s:%(message)s")
-        self.logger = logging.getLogger("ProductsQueue")
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.info("ProductsQueue constructor")
-        self.logger.info("Constructor")
+        self.__InitLogging()
+
+        self.logger.info("ProductsServicer constructor")
+
         client = TooGoodToGoClient(email, password)
         client.StartMonitor()
         self.productsQueue = ProductsQueue(client)
 
     def GetProducts(self, request, context):
         self.logger.info(f"Received request for user {request.user}")
-        print(threading.get_ident())
-
-        # self.productsQueue.startAdd()
-
         for item in self.productsQueue:
-            self.logger.debug(f"Gotten {item}")
+            self.logger.debug(f"Gotten {item} from queue")
             yield item
-        # for item in self.client.GetProducts():
-            # print(f"Retrieved {item['item']['item_id']}")
-            # yield self.productsQueue.get()
-            # yield products_pb2.ProductResponse(id=item["item"]["item_id"])
 
+    def __InitLogging(self):
+        logging.basicConfig(format="%(threadName)s:%(message)s")
+        self.logger = logging.getLogger("ProductsServicer")
+        self.logger.setLevel(logging.DEBUG)
+        
 
 def serve():
     print("Serve")
