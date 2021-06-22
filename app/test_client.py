@@ -6,7 +6,8 @@ import products_pb2_grpc
 
 def run():
     credentials = grpc.ssl_channel_credentials()
-    with grpc.secure_channel("too-good-to-go-cloud-notifier.jordangottardo.com:50051", credentials) as channel:
+    # with grpc.secure_channel("too-good-to-go-cloud-notifier.jordangottardo.com:50051", credentials) as channel:
+    with grpc.insecure_channel("localhost:50051") as channel:
         stub = products_pb2_grpc.ProductsManagerStub(channel)
         print("-------------- Products --------------")
         user = products_pb2.ProductRequest(user="User1")

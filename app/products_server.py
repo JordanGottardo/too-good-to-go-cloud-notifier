@@ -2,23 +2,35 @@ from concurrent import futures
 import logging
 import argparse
 from too_good_to_go_client import TooGoodToGoClient
+from products_queue import ProductsQueue
 import grpc
 import products_pb2
 import products_pb2_grpc
+from event import Event
 
 
 class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
 
     def __init__(self, email, password):
-        print("Constructor")
-        self.client = TooGoodToGoClient(email, password)
+        self.__InitLogging()
+
+        self.logger.info("ProductsServicer constructor")
+
+        client = TooGoodToGoClient(email, password)
+        client.StartMonitor()
+        self.productsQueue = ProductsQueue(client)
 
     def GetProducts(self, request, context):
-        print(f"Received request for user {request.user}")
-        for item in self.client.GetProducts():
-            print(f"Retrieved {item['item']['item_id']}")
-            yield products_pb2.ProductResponse(id=item["item"]["item_id"])
+        self.logger.info(f"Received request for user {request.user}")
+        for item in self.productsQueue:
+            self.logger.debug(f"Gotten {item} from queue")
+            yield item
 
+    def __InitLogging(self):
+        logging.basicConfig(format="%(threadName)s:%(message)s")
+        self.logger = logging.getLogger("ProductsServicer")
+        self.logger.setLevel(logging.DEBUG)
+        
 
 def serve():
     print("Serve")
@@ -33,7 +45,10 @@ def serve():
 
 
 if __name__ == '__main__':
-    print("Main started")
+    logging.basicConfig(format="%(threadName)s:%(message)s")
+    logger = logging.getLogger("main")
+    logger.setLevel(logging.DEBUG)
+    logger.info("Main started")
     parser = argparse.ArgumentParser()
     parser.add_argument('--email', type=str, help='TooGoodToGo Email')
     parser.add_argument('--password', type=str, help='TooGoodToGo password')
@@ -41,7 +56,5 @@ if __name__ == '__main__':
 
     email = args.email
     password = args.password
-    
-    logging.basicConfig()
-    serve()
 
+    serve()
