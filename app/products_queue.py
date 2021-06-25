@@ -13,8 +13,9 @@ class ProductsQueue():
     def __init__(self, tgtgClient: TooGoodToGoClient):
         self.__InitLogging()
         self.logger.info("ProductsQueue constructor")
-        self.queue = queue.Queue()
-        self.set = set()
+        self.productsIdQueue = queue.Queue()
+        self.productsDictionary = {}
+        self.productsStaleDictionary = {}
         self.client = tgtgClient
         self.client.AddEventHandler(self.__productsReceivedEventHandler)
 
@@ -22,7 +23,14 @@ class ProductsQueue():
         return self
 
     def _next(self):
-        product: Product = self.queue.get()
+        productId: str = self.productsIdQueue.get()
+        product: Product = self.productsDictionary.pop(productId)
+        productForStalenessCheck: Product = self.productsStaleDictionary[productId]
+
+        if (self.__IsProductInfoStale(productForStalenessCheck)):
+            self.logger.debug(
+                f"Iterator next: product {productId} is stale: removing it")
+            self.productsDictionary.pop(productId)
         return self.__ToProductResponse(product)
 
     def __next__(self):
@@ -33,14 +41,23 @@ class ProductsQueue():
 
     def __productsReceivedEventHandler(self, products: list[Product]):
         for product in products:
-            productAlreadyInSet = product in self.set
-            if (not productAlreadyInSet or self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 1):
+            productId = product.id
+            self.productsDictionary[productId] = product
+            productAlreadySeen = productId in self.productsStaleDictionary
+
+            if (not productAlreadySeen):
                 self.logger.debug(
-                    f"__productsReceivedEventHandler {product.id}")
-                if (productAlreadyInSet):
-                    self.set.remove(product)
-                self.set.add(product)
-                self.queue.put(product)
+                    f"New product with {productId} received: inserting")
+                self.productsStaleDictionary[productId] = product
+                self.productsIdQueue.put(productId)
+            elif (self.__IsProductInfoStale(self.productsStaleDictionary[productId])):
+                self.logger.debug(f"Product {productId} is stale: updating it")
+                self.productsIdQueue.put(productId)
+                self.productsStaleDictionary.pop(productId)
+                self.productsStaleDictionary[productId] = product
+
+    def __IsProductInfoStale(self, product: Product):
+        return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 2
 
     def __HoursDifferenceBetween(self, olderDate: datetime, newerDate: datetime):
         minutes = (newerDate - olderDate).total_seconds() / 60
