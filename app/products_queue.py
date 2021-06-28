@@ -16,20 +16,20 @@ class ProductsQueue():
         self.productsIdQueue = queue.Queue()
         self.productsDictionary = {}
         self.productsStaleDictionary = {}
-        self.lock = threading.Lock()
         self.client = tgtgClient
         self.client.AddEventHandler(self.__productsReceivedEventHandler)
+        self.__StartPeriodicCleanUpTask()
 
     def __iter__(self):
         return self
 
     def _next(self):
-        
-        self.logger.debug(f"There are {str(self.productsIdQueue.qsize())} product in queue")
+        self.logger.debug(
+            f"There are {self.__GetProductIdQueueLength()} product in queue")
         productId: str = self.productsIdQueue.get()
         if (not productId in self.productsDictionary):
             return self._next()
-        
+
         product: Product = self.productsDictionary.pop(productId)
         productForStalenessCheck: Product = self.productsStaleDictionary[productId]
 
@@ -72,11 +72,28 @@ class ProductsQueue():
 
     def __HoursDifferenceBetween(self, olderDate: datetime, newerDate: datetime):
         return (newerDate - olderDate).total_seconds() / 60
-        
 
     def __AddProductsToQueue(self, productsIdToInsert: list):
         for id in productsIdToInsert:
             self.productsIdQueue.put(id)
+
+    def __StartPeriodicCleanUpTask(self):
+        self.logger.debug(
+            "ProductsQueue timer ticked: starting periodic cleanup task")
+        # Executes cleanup periodically. TODO: changed to like 5 days
+        # timer = threading.Timer(5 * 24 * 60 * 60, self.__PeriodicCleanUpTask)
+        timer = threading.Timer(60 * 60, self.__PeriodicCleanUpTask)
+        timer.daemon = True
+        timer.start()
+
+    def __PeriodicCleanUpTask(self):
+        self.logger.debug(
+            f"ProductsQueue __PeriodicCleanUpTask: found {self.__GetProductIdQueueLength} products in queue, removing all of them")
+        with self.productsIdQueue.mutex:
+            self.productsIdQueue.queue.clear()
+
+    def __GetProductIdQueueLength(self):
+        return str(self.productsIdQueue.qsize())
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
