@@ -13,6 +13,7 @@ class ProductsQueue():
     def __init__(self, tgtgClient: TooGoodToGoClient):
         self.__InitLogging()
         self.logger.info("ProductsQueue constructor")
+        self.lock = threading.Lock()
         self.productsIdQueue = queue.Queue()
         self.productsDictionary = {}
         self.productsStaleDictionary = {}
@@ -46,26 +47,27 @@ class ProductsQueue():
         return (products_pb2.ProductResponse(id=product.id))
 
     def __productsReceivedEventHandler(self, products: list[Product]):
-        self.logger.debug(f"ProductsQueue __productsReceivedEventHandler")
-        toBeInsertedInQueue = []
+        with self.lock:
+            self.logger.debug(f"ProductsQueue __productsReceivedEventHandler")
+            toBeInsertedInQueue = []
 
-        for product in products:
-            productId = product.id
-            self.productsDictionary[productId] = product
-            productAlreadySeen = productId in self.productsStaleDictionary
+            for product in products:
+                productId = product.id
+                self.productsDictionary[productId] = product
+                productAlreadySeen = productId in self.productsStaleDictionary
 
-            if (not productAlreadySeen):
-                self.logger.debug(
-                    f"New product with ID {productId} received: inserting")
-                self.productsStaleDictionary[productId] = product
-                toBeInsertedInQueue.append(productId)
-            elif (self.__IsProductInfoStale(self.productsStaleDictionary[productId])):
-                self.logger.debug(f"Product {productId} is stale: updating it")
-                toBeInsertedInQueue.append(productId)
-                self.productsStaleDictionary.pop(productId)
-                self.productsStaleDictionary[productId] = product
+                if (not productAlreadySeen):
+                    self.logger.debug(
+                        f"New product with ID {productId} received: inserting")
+                    self.productsStaleDictionary[productId] = product
+                    toBeInsertedInQueue.append(productId)
+                elif (self.__IsProductInfoStale(self.productsStaleDictionary[productId])):
+                    self.logger.debug(f"Product {productId} is stale: updating it")
+                    toBeInsertedInQueue.append(productId)
+                    self.productsStaleDictionary.pop(productId)
+                    self.productsStaleDictionary[productId] = product
 
-        self.__AddProductsToQueue(toBeInsertedInQueue)
+            self.__AddProductsToQueue(toBeInsertedInQueue)
 
     def __IsProductInfoStale(self, product: Product):
         return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 1
@@ -78,19 +80,19 @@ class ProductsQueue():
             self.productsIdQueue.put(id)
 
     def __StartPeriodicCleanUpTask(self):
-        self.logger.debug(
-            "ProductsQueue timer ticked: starting periodic cleanup task")
-        # Executes cleanup periodically. TODO: changed to like 5 days
-        # timer = threading.Timer(5 * 24 * 60 * 60, self.__PeriodicCleanUpTask)
-        timer = threading.Timer(60 * 60, self.__PeriodicCleanUpTask)
-        timer.daemon = True
-        timer.start()
+        self.__PeriodicCleanUpTask()
 
     def __PeriodicCleanUpTask(self):
         self.logger.debug(
-            f"ProductsQueue __PeriodicCleanUpTask: found {self.__GetProductIdQueueLength} products in queue, removing all of them")
-        with self.productsIdQueue.mutex:
-            self.productsIdQueue.queue.clear()
+            f"ProductsQueue __PeriodicCleanUpTask: found {self.__GetProductIdQueueLength()} products in queue, removing all of them")
+        # Executes cleanup periodically. TODO: changed to like 5 days
+        # timer = threading.Timer(5 * 24 * 60 * 60, self.__PeriodicCleanUpTask)
+        timer = threading.Timer(3 * 60, self.__PeriodicCleanUpTask)
+        timer.daemon = True
+        timer.start()
+        with self.lock:
+            with self.productsIdQueue.mutex:
+                self.productsIdQueue.queue.clear()
 
     def __GetProductIdQueueLength(self):
         return str(self.productsIdQueue.qsize())
