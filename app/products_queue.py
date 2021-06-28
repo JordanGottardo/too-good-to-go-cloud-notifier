@@ -1,7 +1,7 @@
 import queue
 import threading
 import time
-from product import Product
+from product import Product, Store
 import products_pb2
 import logging
 from too_good_to_go_client import TooGoodToGoClient
@@ -44,7 +44,20 @@ class ProductsQueue():
         return self._next()
 
     def __ToProductResponse(self, product: Product):
-        return (products_pb2.ProductResponse(id=product.id))
+        return (products_pb2.ProductResponse(
+            id=product.id,
+            price=product.price,
+            decimals=product.decimals,
+            pickupLocation=product.pickupLocation,
+            store=self.__ToStore(product.store)
+            ))
+
+    def __ToStore(self, store: Store):
+        return (products_pb2.Store(
+            name=store.name,
+            address=store.address,
+            city=store.city
+        ))
 
     def __productsReceivedEventHandler(self, products: list[Product]):
         with self.lock:
@@ -70,6 +83,7 @@ class ProductsQueue():
             self.__AddProductsToQueue(toBeInsertedInQueue)
 
     def __IsProductInfoStale(self, product: Product):
+        # TODO increase timeout to some hours (e.g., 24)
         return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 1
 
     def __HoursDifferenceBetween(self, olderDate: datetime, newerDate: datetime):

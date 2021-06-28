@@ -25,7 +25,8 @@ def run():
         products = stub.GetProducts(user)
 
         for product in products:
-            print(f"{datetime.now()} {product.id}")
+            print(f"{datetime.now()} ID = {product.id}\n"
+            f"Price = {product.price}")
 
 
 if __name__ == "__main__":

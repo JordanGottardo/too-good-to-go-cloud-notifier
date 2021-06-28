@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0eproducts.proto\"\x1e\n\x0eProductRequest\x12\x0c\n\x04user\x18\x01 \x01(\t\"\x1d\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t2G\n\x0fProductsManager\x12\x34\n\x0bGetProducts\x12\x0f.ProductRequest\x1a\x10.ProductResponse\"\x00\x30\x01\x62\x06proto3'
+  serialized_pb=b'\n\x0eproducts.proto\"\x1e\n\x0eProductRequest\x12\x0c\n\x04user\x18\x01 \x01(\t\"m\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x05\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\x05\x12\x16\n\x0epickupLocation\x18\x04 \x01(\t\x12\x15\n\x05store\x18\x05 \x01(\x0b\x32\x06.Store\"4\n\x05Store\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x0c\n\x04\x63ity\x18\x03 \x01(\t2G\n\x0fProductsManager\x12\x34\n\x0bGetProducts\x12\x0f.ProductRequest\x1a\x10.ProductResponse\"\x00\x30\x01\x62\x06proto3'
 )
 
 
@@ -72,6 +72,34 @@ _PRODUCTRESPONSE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='price', full_name='ProductResponse.price', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='decimals', full_name='ProductResponse.decimals', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='pickupLocation', full_name='ProductResponse.pickupLocation', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='store', full_name='ProductResponse.store', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -85,11 +113,59 @@ _PRODUCTRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=50,
-  serialized_end=79,
+  serialized_end=159,
 )
 
+
+_STORE = _descriptor.Descriptor(
+  name='Store',
+  full_name='Store',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='name', full_name='Store.name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='address', full_name='Store.address', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='city', full_name='Store.city', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=161,
+  serialized_end=213,
+)
+
+_PRODUCTRESPONSE.fields_by_name['store'].message_type = _STORE
 DESCRIPTOR.message_types_by_name['ProductRequest'] = _PRODUCTREQUEST
 DESCRIPTOR.message_types_by_name['ProductResponse'] = _PRODUCTRESPONSE
+DESCRIPTOR.message_types_by_name['Store'] = _STORE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ProductRequest = _reflection.GeneratedProtocolMessageType('ProductRequest', (_message.Message,), {
@@ -106,6 +182,13 @@ ProductResponse = _reflection.GeneratedProtocolMessageType('ProductResponse', (_
   })
 _sym_db.RegisterMessage(ProductResponse)
 
+Store = _reflection.GeneratedProtocolMessageType('Store', (_message.Message,), {
+  'DESCRIPTOR' : _STORE,
+  '__module__' : 'products_pb2'
+  # @@protoc_insertion_point(class_scope:Store)
+  })
+_sym_db.RegisterMessage(Store)
+
 
 
 _PRODUCTSMANAGER = _descriptor.ServiceDescriptor(
@@ -115,8 +198,8 @@ _PRODUCTSMANAGER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=81,
-  serialized_end=152,
+  serialized_start=215,
+  serialized_end=286,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetProducts',
