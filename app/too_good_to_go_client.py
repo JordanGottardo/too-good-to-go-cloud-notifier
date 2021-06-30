@@ -35,9 +35,9 @@ class TooGoodToGoClient:
         self.event(self.__GetProducts())
 
     def __ToAvailableProducts(self, productsFromClient: list):
-        # TODO set condition to > 0
+        # TODO set condition to >= 0 to be notified about all products
         
-        availableProducts = list(filter(lambda product: product["items_available"] >= 0, productsFromClient)) 
+        availableProducts = list(filter(lambda product: product["items_available"] > 0, productsFromClient)) 
         
         self.logger.debug(f"TooGoodToGoClient retrieved {len(availableProducts)} available products")
         

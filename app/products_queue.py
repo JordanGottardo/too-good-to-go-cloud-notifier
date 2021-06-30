@@ -83,8 +83,8 @@ class ProductsQueue():
             self.__AddProductsToQueue(toBeInsertedInQueue)
 
     def __IsProductInfoStale(self, product: Product):
-        # TODO increase timeout to some hours (e.g., 24)
-        return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 1
+        # TODO set condition to less time to receive more notifications
+        return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 60 * 12
 
     def __HoursDifferenceBetween(self, olderDate: datetime, newerDate: datetime):
         return (newerDate - olderDate).total_seconds() / 60
@@ -101,7 +101,7 @@ class ProductsQueue():
             f"ProductsQueue __PeriodicCleanUpTask: found {self.__GetProductIdQueueLength()} products in queue, removing all of them")
         # Executes cleanup periodically. TODO: changed to like 5 days
         # timer = threading.Timer(5 * 24 * 60 * 60, self.__PeriodicCleanUpTask)
-        timer = threading.Timer(3 * 60, self.__PeriodicCleanUpTask)
+        timer = threading.Timer(24 * 60 * 60, self.__PeriodicCleanUpTask)
         timer.daemon = True
         timer.start()
         with self.lock:
