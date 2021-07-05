@@ -38,19 +38,19 @@ class ProductsQueue():
             self.logger.debug(
                 f"Iterator next: product {productId} is stale: removing it")
             self.productsStaleDictionary.pop(productId)
-        return self.__ToProductResponse(product)
+        return self.__ToProductResponseServerMessage(product)
 
     def __next__(self):
         return self._next()
 
-    def __ToProductResponse(self, product: Product):
-        return (products_pb2.ProductResponse(
+    def __ToProductResponseServerMessage(self, product: Product):
+        return (products_pb2.ProductServerMessage(productResponse=products_pb2.ProductResponse(
             id=product.id,
             price=product.price,
             decimals=product.decimals,
             pickupLocation=product.pickupLocation,
             store=self.__ToStore(product.store)
-            ))
+        )))
 
     def __ToStore(self, store: Store):
         return (products_pb2.Store(
@@ -63,28 +63,34 @@ class ProductsQueue():
         with self.lock:
             self.logger.debug(f"ProductsQueue __productsReceivedEventHandler")
             toBeInsertedInQueue = []
+            toBeRemovedFromQueue = []
 
             for product in products:
                 productId = product.id
-                self.productsDictionary[productId] = product
                 productAlreadySeen = productId in self.productsStaleDictionary
 
-                if (not productAlreadySeen):
-                    self.logger.debug(
-                        f"New product with ID {productId} received: inserting")
-                    self.productsStaleDictionary[productId] = product
-                    toBeInsertedInQueue.append(productId)
-                elif (self.__IsProductInfoStale(self.productsStaleDictionary[productId])):
-                    self.logger.debug(f"Product {productId} is stale: updating it")
-                    toBeInsertedInQueue.append(productId)
-                    self.productsStaleDictionary.pop(productId)
-                    self.productsStaleDictionary[productId] = product
+                if (product.isAvailable):
+                    self.productsDictionary[productId] = product
+                    if (not productAlreadySeen):
+                        self.logger.debug(
+                            f"New available product with ID {productId} received: inserting")
+                        self.productsStaleDictionary[productId] = product
+                        toBeInsertedInQueue.append(productId)
+                    elif (self.__IsProductInfoStale(self.productsStaleDictionary[productId])):
+                        self.logger.debug(
+                            f"Available product {productId} is stale: updating it")
+                        toBeInsertedInQueue.append(productId)
+                        self.productsStaleDictionary.pop(productId)
+                        self.productsStaleDictionary[productId] = product
+                else:
+                    toBeRemovedFromQueue.append(productId)
 
             self.__AddProductsToQueue(toBeInsertedInQueue)
+            self.__RemoveProductsFromQueue(toBeRemovedFromQueue)
 
     def __IsProductInfoStale(self, product: Product):
         # TODO set condition to less time to receive more notifications
-        return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 60 * 12
+        return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 2
 
     def __HoursDifferenceBetween(self, olderDate: datetime, newerDate: datetime):
         return (newerDate - olderDate).total_seconds() / 60
@@ -92,6 +98,15 @@ class ProductsQueue():
     def __AddProductsToQueue(self, productsIdToInsert: list):
         for id in productsIdToInsert:
             self.productsIdQueue.put(id)
+
+    def __RemoveProductsFromQueue(self, productsIdToRemove: list):
+        for id in productsIdToRemove:
+            if (id in self.productsDictionary):
+                self.logger.debug(
+                    f"Formerly available product is no longer available: removing {id} from queue")
+                self.productsDictionary.pop(id)
+            if (id in self.productsStaleDictionary):
+                self.productsStaleDictionary.pop(id)
 
     def __StartPeriodicCleanUpTask(self):
         self.__PeriodicCleanUpTask()

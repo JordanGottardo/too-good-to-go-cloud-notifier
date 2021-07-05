@@ -7,6 +7,7 @@ class Product:
         self.price = productFromClient["item"]["price"]["minor_units"]
         self.decimals = productFromClient["item"]["price"]["decimals"]
         self.pickupLocation = productFromClient["pickup_location"]["address"]["address_line"]
+        self.isAvailable = productFromClient["items_available"] > 0
         self.store = Store(productFromClient["store"])
         self.createdTime = datetime.now()
 

@@ -17,7 +17,7 @@ class ProductsManagerStub(object):
         self.GetProducts = channel.unary_stream(
                 '/ProductsManager/GetProducts',
                 request_serializer=products__pb2.ProductRequest.SerializeToString,
-                response_deserializer=products__pb2.ProductResponse.FromString,
+                response_deserializer=products__pb2.ProductServerMessage.FromString,
                 )
 
 
@@ -36,7 +36,7 @@ def add_ProductsManagerServicer_to_server(servicer, server):
             'GetProducts': grpc.unary_stream_rpc_method_handler(
                     servicer.GetProducts,
                     request_deserializer=products__pb2.ProductRequest.FromString,
-                    response_serializer=products__pb2.ProductResponse.SerializeToString,
+                    response_serializer=products__pb2.ProductServerMessage.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -61,6 +61,6 @@ class ProductsManager(object):
             metadata=None):
         return grpc.experimental.unary_stream(request, target, '/ProductsManager/GetProducts',
             products__pb2.ProductRequest.SerializeToString,
-            products__pb2.ProductResponse.FromString,
+            products__pb2.ProductServerMessage.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
