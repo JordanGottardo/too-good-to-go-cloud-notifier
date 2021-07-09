@@ -17,8 +17,8 @@ def run():
         #('grpc.max_connection_age_ms', 120000),
     ]
 
-    #with grpc.secure_channel("too-good-to-go-cloud-notifier.jordangottardo.com:50051", credentials, options=options) as channel:
-    with grpc.insecure_channel("localhost:50051") as channel:
+    with grpc.secure_channel("too-good-to-go-cloud-notifier.jordangottardo.com:50051", credentials, options=options) as channel:
+    # with grpc.insecure_channel("localhost:50051") as channel:
         stub = products_pb2_grpc.ProductsManagerStub(channel)
         print("-------------- Products --------------")
         user = products_pb2.ProductRequest(user="User1")
@@ -27,10 +27,13 @@ def run():
         messages = stub.GetProducts(user)
 
         for message in messages:
-            product = message.productResponse
-            print(f"{datetime.now()} ID = {product.id}\n"
-            f"Price = {product.price}\n"
-            f"StoreID = {product.store.name}")
+            if (message.HasField("keepAlive")):
+                print(f"{datetime.now()} KeepAlive received")
+            else:
+                product = message.productResponse
+                print(f"{datetime.now()} ID = {product.id}\n"
+                f"Price = {product.price}\n"
+                f"StoreID = {product.store.name}")
 
 
 if __name__ == "__main__":

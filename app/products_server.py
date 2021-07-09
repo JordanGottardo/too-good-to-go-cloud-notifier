@@ -1,12 +1,10 @@
 from concurrent import futures
 import logging
-import argparse
 from too_good_to_go_client import TooGoodToGoClient
 from products_queue import ProductsQueue
 import grpc
-import products_pb2
 import products_pb2_grpc
-from event import Event
+import os
 
 
 class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
@@ -23,7 +21,10 @@ class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
     def GetProducts(self, request, context):
         self.logger.info(f"Received request for user {request.user}")
         for item in self.productsQueue:
-            self.logger.debug(f"Gotten {item.productResponse.id} from queue. Returning it to the client")
+            if (item.HasField("keepAlive")):
+                self.logger.debug("Sending KeepAlive")
+            else:
+                self.logger.debug(f"Gotten {item.productResponse.id} from queue. Returning it to the client")
             yield item
 
     def __InitLogging(self):
@@ -60,12 +61,7 @@ if __name__ == '__main__':
     logger = logging.getLogger("main")
     logger.setLevel(logging.DEBUG)
     logger.info("Main started")
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--email', type=str, help='TooGoodToGo Email')
-    parser.add_argument('--password', type=str, help='TooGoodToGo password')
-    args = parser.parse_args()
-
-    email = args.email
-    password = args.password
+    email = os.environ["TGTG_EMAIL"]
+    password = os.environ["TGTG_PASSWORD"]
 
     serve()

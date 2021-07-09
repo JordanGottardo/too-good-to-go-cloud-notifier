@@ -1,8 +1,7 @@
 import queue
 import threading
-import time
 from product import Product, Store
-import products_pb2
+from products_pb2 import ProductServerMessage, ProductResponse, Store, KeepAlive
 import logging
 from too_good_to_go_client import TooGoodToGoClient
 from datetime import datetime
@@ -14,20 +13,31 @@ class ProductsQueue():
         self.__InitLogging()
         self.logger.info("ProductsQueue constructor")
         self.lock = threading.Lock()
-        self.productsIdQueue = queue.Queue()
+        self.keepAliveLock = threading.Lock()
+        self.queueContainsKeepAlive = False
+        self.productsIdAndKeepaliveQueue = queue.Queue()
         self.productsDictionary = {}
         self.productsStaleDictionary = {}
         self.client = tgtgClient
         self.client.AddEventHandler(self.__productsReceivedEventHandler)
         self.__StartPeriodicCleanUpTask()
+        self.__StartHeartBeatTask()
 
     def __iter__(self):
         return self
 
     def _next(self):
         self.logger.debug(
-            f"There are {self.__GetProductIdQueueLength()} product in queue")
-        productId: str = self.productsIdQueue.get()
+            f"There are {self.__GetProductIdQueueLength()} items in queue")
+
+        productIdOrKeepalive = self.productsIdAndKeepaliveQueue.get()
+
+        with self.keepAliveLock:
+            if (type(productIdOrKeepalive) is ProductServerMessage):
+                self.queueContainsKeepAlive = False
+                return productIdOrKeepalive
+
+        productId : str = productIdOrKeepalive    
         if (not productId in self.productsDictionary):
             return self._next()
 
@@ -44,8 +54,8 @@ class ProductsQueue():
         return self._next()
 
     def __ToProductResponseServerMessage(self, product: Product):
-        serverMessage = products_pb2.ProductServerMessage()
-        productResponse = products_pb2.ProductResponse(
+        serverMessage = ProductServerMessage()
+        productResponse = ProductResponse(
             id=product.id,
             price=product.price,
             decimals=product.decimals,
@@ -58,7 +68,7 @@ class ProductsQueue():
         return serverMessage
 
     def __ToStore(self, store: Store):
-        return (products_pb2.Store(
+        return (Store(
             name=store.name,
             address=store.address,
             city=store.city
@@ -102,7 +112,7 @@ class ProductsQueue():
 
     def __AddProductsToQueue(self, productsIdToInsert: list):
         for id in productsIdToInsert:
-            self.productsIdQueue.put(id)
+            self.productsIdAndKeepaliveQueue.put(id)
 
     def __RemoveProductsFromQueue(self, productsIdToRemove: list):
         for id in productsIdToRemove:
@@ -125,11 +135,25 @@ class ProductsQueue():
         timer.daemon = True
         timer.start()
         with self.lock:
-            with self.productsIdQueue.mutex:
-                self.productsIdQueue.queue.clear()
+            with self.productsIdAndKeepaliveQueue.mutex:
+                self.productsIdAndKeepaliveQueue.queue.clear()
+
+    def __StartHeartBeatTask(self):
+        self.__HeartBeatTask()
+
+    def __HeartBeatTask(self):
+        timer = threading.Timer(20, self.__HeartBeatTask)
+        timer.daemon = True
+        timer.start()
+        with self.keepAliveLock:
+            if (not self.queueContainsKeepAlive):
+                self.queueContainsKeepAlive = True
+                productServerMessage = ProductServerMessage()
+                productServerMessage.keepAlive.CopyFrom(KeepAlive())
+                self.productsIdAndKeepaliveQueue.put(productServerMessage)
 
     def __GetProductIdQueueLength(self):
-        return str(self.productsIdQueue.qsize())
+        return str(self.productsIdAndKeepaliveQueue.qsize())
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
