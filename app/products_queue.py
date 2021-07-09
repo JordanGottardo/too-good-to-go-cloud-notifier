@@ -44,13 +44,18 @@ class ProductsQueue():
         return self._next()
 
     def __ToProductResponseServerMessage(self, product: Product):
-        return (products_pb2.ProductServerMessage(productResponse=products_pb2.ProductResponse(
+        serverMessage = products_pb2.ProductServerMessage()
+        productResponse = products_pb2.ProductResponse(
             id=product.id,
             price=product.price,
             decimals=product.decimals,
             pickupLocation=product.pickupLocation,
             store=self.__ToStore(product.store)
-        )))
+        )
+
+        serverMessage.productResponse.CopyFrom(productResponse)
+
+        return serverMessage
 
     def __ToStore(self, store: Store):
         return (products_pb2.Store(

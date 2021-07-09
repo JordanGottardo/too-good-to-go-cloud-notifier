@@ -27,9 +27,10 @@ def run():
         messages = stub.GetProducts(user)
 
         for message in messages:
-            product = message.message
+            product = message.productResponse
             print(f"{datetime.now()} ID = {product.id}\n"
-            f"Price = {product.price}")
+            f"Price = {product.price}\n"
+            f"StoreID = {product.store.name}")
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
     def GetProducts(self, request, context):
         self.logger.info(f"Received request for user {request.user}")
         for item in self.productsQueue:
-            self.logger.debug(f"Gotten {item.id} from queue. Returning it to the client")
+            self.logger.debug(f"Gotten {item.productResponse.id} from queue. Returning it to the client")
             yield item
 
     def __InitLogging(self):
