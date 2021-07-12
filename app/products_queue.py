@@ -12,7 +12,7 @@ class ProductsQueue():
     def __init__(self, tgtgClient: TooGoodToGoClient):
         self.__InitLogging()
         self.logger.info("ProductsQueue constructor")
-        self.lock = threading.Lock()
+        self.productsLock = threading.Lock()
         self.keepAliveLock = threading.Lock()
         self.queueContainsKeepAlive = False
         self.productsIdAndKeepaliveQueue = queue.Queue()
@@ -75,7 +75,7 @@ class ProductsQueue():
         ))
 
     def __productsReceivedEventHandler(self, products: list[Product]):
-        with self.lock:
+        with self.productsLock:
             self.logger.debug(f"ProductsQueue __productsReceivedEventHandler")
             toBeInsertedInQueue = []
             toBeRemovedFromQueue = []
@@ -134,9 +134,11 @@ class ProductsQueue():
         timer = threading.Timer(24 * 60 * 60, self.__PeriodicCleanUpTask)
         timer.daemon = True
         timer.start()
-        with self.lock:
-            with self.productsIdAndKeepaliveQueue.mutex:
-                self.productsIdAndKeepaliveQueue.queue.clear()
+        with self.productsLock:
+            with self.keepAliveLock:
+                with self.productsIdAndKeepaliveQueue.mutex:
+                    self.productsIdAndKeepaliveQueue.queue.clear()
+                    self.queueContainsKeepAlive = False
 
     def __StartHeartBeatTask(self):
         self.__HeartBeatTask()
@@ -147,6 +149,7 @@ class ProductsQueue():
         timer.start()
         with self.keepAliveLock:
             if (not self.queueContainsKeepAlive):
+                self.logger.debug("Adding keepAlive to queue")
                 self.queueContainsKeepAlive = True
                 productServerMessage = ProductServerMessage()
                 productServerMessage.keepAlive.CopyFrom(KeepAlive())
