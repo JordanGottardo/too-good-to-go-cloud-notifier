@@ -5,6 +5,7 @@ from products_pb2 import ProductServerMessage, ProductResponse, Store, KeepAlive
 import logging
 from too_good_to_go_client import TooGoodToGoClient
 from datetime import datetime
+import os
 
 
 class ProductsQueue():
@@ -19,6 +20,8 @@ class ProductsQueue():
         self.productsDictionary = {}
         self.productsStaleDictionary = {}
         self.client = tgtgClient
+        self.PRODUCT_STALE_INTERVAL_HOURS = int(os.environ["PRODUCT_STALE_INTERVAL_HOURS"])
+        self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS = int(os.environ["PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS"])
         self.client.AddEventHandler(self.__productsReceivedEventHandler)
         self.__StartPeriodicCleanUpTask()
         self.__StartHeartBeatTask()
@@ -37,7 +40,7 @@ class ProductsQueue():
                 self.queueContainsKeepAlive = False
                 return productIdOrKeepalive
 
-        productId : str = productIdOrKeepalive    
+        productId: str = productIdOrKeepalive
         if (not productId in self.productsDictionary):
             return self._next()
 
@@ -104,11 +107,10 @@ class ProductsQueue():
             self.__RemoveProductsFromQueue(toBeRemovedFromQueue)
 
     def __IsProductInfoStale(self, product: Product):
-        # TODO set condition to less time to receive more notifications
-        return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > 2
+        return self.__HoursDifferenceBetween(product.createdTime, datetime.now()) > self.PRODUCT_STALE_INTERVAL_HOURS
 
     def __HoursDifferenceBetween(self, olderDate: datetime, newerDate: datetime):
-        return (newerDate - olderDate).total_seconds() / 60
+        return (newerDate - olderDate).total_seconds() / (60 * 60)
 
     def __AddProductsToQueue(self, productsIdToInsert: list):
         for id in productsIdToInsert:
@@ -129,9 +131,7 @@ class ProductsQueue():
     def __PeriodicCleanUpTask(self):
         self.logger.debug(
             f"ProductsQueue __PeriodicCleanUpTask: found {self.__GetProductIdQueueLength()} products in queue, removing all of them")
-        # Executes cleanup periodically. TODO: changed to like 5 days
-        # timer = threading.Timer(5 * 24 * 60 * 60, self.__PeriodicCleanUpTask)
-        timer = threading.Timer(24 * 60 * 60, self.__PeriodicCleanUpTask)
+        timer = threading.Timer(self._GetQueueCleanupIntervalSeconds(), self.__PeriodicCleanUpTask)
         timer.daemon = True
         timer.start()
         with self.productsLock:
@@ -157,6 +157,9 @@ class ProductsQueue():
 
     def __GetProductIdQueueLength(self):
         return str(self.productsIdAndKeepaliveQueue.qsize())
+
+    def _GetQueueCleanupIntervalSeconds(self):
+        return self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS * 60 * 60
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
