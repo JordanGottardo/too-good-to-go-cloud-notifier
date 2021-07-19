@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0eproducts.proto\"\x1e\n\x0eProductRequest\x12\x0c\n\x04user\x18\x01 \x01(\t\"o\n\x14ProductServerMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12+\n\x0fproductResponse\x18\x02 \x01(\x0b\x32\x10.ProductResponseH\x00\x42\t\n\x07message\"\x0b\n\tKeepAlive\"m\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x05\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\x05\x12\x16\n\x0epickupLocation\x18\x04 \x01(\t\x12\x15\n\x05store\x18\x05 \x01(\x0b\x32\x06.Store\"4\n\x05Store\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x0c\n\x04\x63ity\x18\x03 \x01(\t2L\n\x0fProductsManager\x12\x39\n\x0bGetProducts\x12\x0f.ProductRequest\x1a\x15.ProductServerMessage\"\x00\x30\x01\x62\x06proto3'
+  serialized_pb=b'\n\x0eproducts.proto\"4\n\x0eProductRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"o\n\x14ProductServerMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12+\n\x0fproductResponse\x18\x02 \x01(\x0b\x32\x10.ProductResponseH\x00\x42\t\n\x07message\"\x0b\n\tKeepAlive\"m\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x05\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\x05\x12\x16\n\x0epickupLocation\x18\x04 \x01(\t\x12\x15\n\x05store\x18\x05 \x01(\x0b\x32\x06.Store\"4\n\x05Store\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x0c\n\x04\x63ity\x18\x03 \x01(\t2L\n\x0fProductsManager\x12\x39\n\x0bGetProducts\x12\x0f.ProductRequest\x1a\x15.ProductServerMessage\"\x00\x30\x01\x62\x06proto3'
 )
 
 
@@ -34,8 +34,15 @@ _PRODUCTREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='user', full_name='ProductRequest.user', index=0,
+      name='username', full_name='ProductRequest.username', index=0,
       number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='password', full_name='ProductRequest.password', index=1,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -53,7 +60,7 @@ _PRODUCTREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=18,
-  serialized_end=48,
+  serialized_end=70,
 )
 
 
@@ -96,8 +103,8 @@ _PRODUCTSERVERMESSAGE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=50,
-  serialized_end=161,
+  serialized_start=72,
+  serialized_end=183,
 )
 
 
@@ -121,8 +128,8 @@ _KEEPALIVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=163,
-  serialized_end=174,
+  serialized_start=185,
+  serialized_end=196,
 )
 
 
@@ -181,8 +188,8 @@ _PRODUCTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=176,
-  serialized_end=285,
+  serialized_start=198,
+  serialized_end=307,
 )
 
 
@@ -227,8 +234,8 @@ _STORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=287,
-  serialized_end=339,
+  serialized_start=309,
+  serialized_end=361,
 )
 
 _PRODUCTSERVERMESSAGE.fields_by_name['keepAlive'].message_type = _KEEPALIVE
@@ -291,8 +298,8 @@ _PRODUCTSMANAGER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=341,
-  serialized_end=417,
+  serialized_start=363,
+  serialized_end=439,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetProducts',

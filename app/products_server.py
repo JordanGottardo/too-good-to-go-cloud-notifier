@@ -3,28 +3,30 @@ import logging
 from too_good_to_go_client import TooGoodToGoClient
 from products_queue import ProductsQueue
 import grpc
-import products_pb2_grpc
+from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
+from products_pb2 import ProductRequest
 import os
 
 
-class ProductsServicer(products_pb2_grpc.ProductsManagerServicer):
+class ProductsServicer(ProductsManagerServicer):
 
-    def __init__(self, email, password):
+    def __init__(self):
         self.__InitLogging()
 
         self.logger.info("ProductsServicer constructor")
 
-        client = TooGoodToGoClient(email, password)
+    def GetProducts(self, request: ProductRequest, context):
+        self.logger.info(f"Received request for user {request.username}")
+
+        client = TooGoodToGoClient(request.username, request.password)
         client.StartMonitor()
         self.productsQueue = ProductsQueue(client)
-
-    def GetProducts(self, request, context):
-        self.logger.info(f"Received request for user {request.user}")
         for item in self.productsQueue:
             if (item.HasField("keepAlive")):
                 self.logger.debug("Sending KeepAlive")
             else:
-                self.logger.debug(f"Gotten {item.productResponse.id} from queue. Returning it to the client")
+                self.logger.debug(
+                    f"Gotten {item.productResponse.id} from queue. Returning it to the client")
             yield item
 
     def __InitLogging(self):
@@ -42,13 +44,10 @@ def serve():
         ('grpc.http2.max_pings_without_data', 0),
         ('grpc.http2.min_time_between_pings_ms', 10000),
         ('grpc.http2.min_ping_interval_without_data_ms', 5000),
-        #('grpc.max_connection_idle_ms', 120000),
-        #('grpc.max_connection_age_ms', 120000)
     ]
     server = grpc.server(futures.ThreadPoolExecutor(
         max_workers=10), options=options)
-    products_pb2_grpc.add_ProductsManagerServicer_to_server(
-        ProductsServicer(email, password), server)
+    add_ProductsManagerServicer_to_server(ProductsServicer(), server)
     server.add_insecure_port('[::]:50051')
     server.start()
     print("Server started")
@@ -61,7 +60,5 @@ if __name__ == '__main__':
     logger = logging.getLogger("main")
     logger.setLevel(logging.DEBUG)
     logger.info("Main started")
-    email = os.environ["TGTG_EMAIL"]
-    password = os.environ["TGTG_PASSWORD"]
 
     serve()

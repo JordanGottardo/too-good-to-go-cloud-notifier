@@ -5,7 +5,8 @@ service ProductsManager {
  }
 
  message ProductRequest {
-     string user = 1;
+     string username = 1;
+     string password = 2;
  }
 
  message ProductServerMessage {
