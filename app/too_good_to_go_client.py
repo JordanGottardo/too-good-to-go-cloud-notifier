@@ -11,7 +11,7 @@ class TooGoodToGoClient:
         self.__InitLogging()
 
         self.logger.info(
-            f"TooGoodToGoClient Constructor: initializing for user {email} with password {password}")
+            f"TooGoodToGoClient Constructor: initializing for user {email}")
 
         self.email = email
         self.password = password
@@ -34,7 +34,8 @@ class TooGoodToGoClient:
     def __GetProductsPeriodically(self):
         if (not self.monitoringStopped):
             timer = threading.Timer(30, self.__GetProductsPeriodically)
-            self.logger.debug("TooGoodToGoClient timer ticked: getting products")
+            self.logger.debug(
+                "TooGoodToGoClient timer ticked: getting products")
             timer.daemon = True
             timer.start()
             self.event(self.__GetProducts())
