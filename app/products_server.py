@@ -18,16 +18,26 @@ class ProductsServicer(ProductsManagerServicer):
     def GetProducts(self, request: ProductRequest, context):
         self.logger.info(f"Received request for user {request.username}")
 
+        context.add_callback(self.__GrpcChannelClosedCallback)
+
         client = TooGoodToGoClient(request.username, request.password)
         client.StartMonitor()
         self.productsQueue = ProductsQueue(client)
         for item in self.productsQueue:
+            if (item is None):
+                self.logger.debug(f"Monitoring ended for user {request.username}")
+                return
+                
             if (item.HasField("keepAlive")):
                 self.logger.debug("Sending KeepAlive")
             else:
                 self.logger.debug(
                     f"Gotten {item.productResponse.id} from queue. Returning it to the client")
             yield item
+
+    def __GrpcChannelClosedCallback(self):
+        self.logger.debug("GRPC channel has been closed")
+        self.productsQueue.StopMonitoring()
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")

@@ -16,6 +16,7 @@ class ProductsQueue():
         self.productsLock = threading.Lock()
         self.keepAliveLock = threading.Lock()
         self.queueContainsKeepAlive = False
+        self.monitoringStopped = False
         self.productsIdAndKeepaliveQueue = queue.Queue()
         self.productsDictionary = {}
         self.productsStaleDictionary = {}
@@ -29,11 +30,21 @@ class ProductsQueue():
     def __iter__(self):
         return self
 
-    def _next(self):
+    def __next__(self):
+        return self.__next()
+
+    def StopMonitoring(self):
+        self.monitoringStopped = True
+        self.client.StopMonitor()
+
+    def __next(self):
         self.logger.debug(
             f"There are {self.__GetProductIdQueueLength()} items in queue")
 
         productIdOrKeepalive = self.productsIdAndKeepaliveQueue.get()
+
+        if (self.monitoringStopped):
+            return
 
         with self.keepAliveLock:
             if (type(productIdOrKeepalive) is ProductServerMessage):
@@ -42,7 +53,7 @@ class ProductsQueue():
 
         productId: str = productIdOrKeepalive
         if (not productId in self.productsDictionary):
-            return self._next()
+            return self.__next()
 
         product: Product = self.productsDictionary.pop(productId)
         productForStalenessCheck: Product = self.productsStaleDictionary[productId]
@@ -52,9 +63,6 @@ class ProductsQueue():
                 f"Iterator next: product {productId} is stale: removing it")
             self.productsStaleDictionary.pop(productId)
         return self.__ToProductResponseServerMessage(product)
-
-    def __next__(self):
-        return self._next()
 
     def __ToProductResponseServerMessage(self, product: Product):
         serverMessage = ProductServerMessage()

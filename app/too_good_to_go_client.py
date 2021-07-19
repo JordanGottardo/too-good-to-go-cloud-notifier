@@ -17,6 +17,7 @@ class TooGoodToGoClient:
         self.password = password
         self.client = TgtgClient(email=email, password=password)
         self.event = Event()
+        self.monitoringStopped = False
 
     def AddEventHandler(self, eventHandler):
         self.event.append(eventHandler)
@@ -24,15 +25,19 @@ class TooGoodToGoClient:
     def StartMonitor(self):
         self.__GetProductsPeriodically()
 
+    def StopMonitor(self):
+        self.monitoringStopped = True
+
     def __GetProducts(self):
         return self.__ToAvailableProducts(self.client.get_items())
 
     def __GetProductsPeriodically(self):
-        self.logger.debug("TooGoodToGoClient timer ticked: getting products")
-        timer = threading.Timer(30, self.__GetProductsPeriodically)
-        timer.daemon = True
-        timer.start()
-        self.event(self.__GetProducts())
+        if (not self.monitoringStopped):
+            timer = threading.Timer(30, self.__GetProductsPeriodically)
+            self.logger.debug("TooGoodToGoClient timer ticked: getting products")
+            timer.daemon = True
+            timer.start()
+            self.event(self.__GetProducts())
 
     def __ToAvailableProducts(self, productsFromClient: list):
         availableProducts = list(
