@@ -33,7 +33,7 @@ class ProductsServicer(ProductsManagerServicer):
                 self.logger.debug("Sending KeepAlive")
             else:
                 self.logger.debug(
-                    f"Gotten {item.productResponse.id} {item.productResponse.pickupLocation} from queue. Returning it to the client")
+                    f"Gotten {item.productResponse.id} {item.productResponse.store.name} from queue. Returning it to the client")
             yield item
 
     def __GrpcChannelClosedCallback(self):

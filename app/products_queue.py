@@ -106,7 +106,7 @@ class ProductsQueue():
                         toBeInsertedInQueue.append(productId)
                     elif (self.__IsProductInfoStale(self.productsStaleDictionary[productId])):
                         self.logger.debug(
-                            f"Available product {productId} {product.pickupLocation} is stale: updating it")
+                            f"Available product {productId} {product.store.name} is stale: updating it")
                         toBeInsertedInQueue.append(productId)
                         self.productsStaleDictionary.pop(productId)
                         self.productsStaleDictionary[productId] = product
