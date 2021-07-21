@@ -21,8 +21,10 @@ class ProductsQueue():
         self.productsDictionary = {}
         self.productsStaleDictionary = {}
         self.client = tgtgClient
-        self.PRODUCT_STALE_INTERVAL_HOURS = int(os.environ["PRODUCT_STALE_INTERVAL_HOURS"])
-        self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS = int(os.environ["PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS"])
+        self.PRODUCT_STALE_INTERVAL_HOURS = int(
+            os.environ["PRODUCT_STALE_INTERVAL_HOURS"])
+        self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS = int(
+            os.environ["PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS"])
         self.client.AddEventHandler(self.__productsReceivedEventHandler)
         self.__StartPeriodicCleanUpTask()
         self.__StartHeartBeatTask()
@@ -104,7 +106,7 @@ class ProductsQueue():
                         toBeInsertedInQueue.append(productId)
                     elif (self.__IsProductInfoStale(self.productsStaleDictionary[productId])):
                         self.logger.debug(
-                            f"Available product {productId} is stale: updating it")
+                            f"Available product {productId} {product.pickupLocation} is stale: updating it")
                         toBeInsertedInQueue.append(productId)
                         self.productsStaleDictionary.pop(productId)
                         self.productsStaleDictionary[productId] = product
@@ -139,7 +141,8 @@ class ProductsQueue():
     def __PeriodicCleanUpTask(self):
         self.logger.debug(
             f"ProductsQueue __PeriodicCleanUpTask: found {self.__GetProductIdQueueLength()} products in queue, removing all of them")
-        timer = threading.Timer(self._GetQueueCleanupIntervalSeconds(), self.__PeriodicCleanUpTask)
+        timer = threading.Timer(
+            self._GetQueueCleanupIntervalSeconds(), self.__PeriodicCleanUpTask)
         timer.daemon = True
         timer.start()
         with self.productsLock:

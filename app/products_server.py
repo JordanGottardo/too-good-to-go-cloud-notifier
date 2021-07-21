@@ -25,14 +25,15 @@ class ProductsServicer(ProductsManagerServicer):
         self.productsQueue = ProductsQueue(client)
         for item in self.productsQueue:
             if (item is None):
-                self.logger.debug(f"Monitoring ended for user {request.username}")
+                self.logger.debug(
+                    f"Monitoring ended for user {request.username}")
                 return
-                
+
             if (item.HasField("keepAlive")):
                 self.logger.debug("Sending KeepAlive")
             else:
                 self.logger.debug(
-                    f"Gotten {item.productResponse.id} from queue. Returning it to the client")
+                    f"Gotten {item.productResponse.id} {item.productResponse.pickupLocation} from queue. Returning it to the client")
             yield item
 
     def __GrpcChannelClosedCallback(self):
