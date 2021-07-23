@@ -5,7 +5,7 @@ from products_queue import ProductsQueue
 import grpc
 from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
 from products_pb2 import ProductRequest
-import os
+import random
 
 
 class ProductsServicer(ProductsManagerServicer):
@@ -16,7 +16,8 @@ class ProductsServicer(ProductsManagerServicer):
         self.logger.info("ProductsServicer constructor")
 
     def GetProducts(self, request: ProductRequest, context):
-        self.logger.info(f"Received request for user {request.username}")
+        identifier = random.randint(0, 99999999999999999999999999999999)
+        self.logger.info(f"Received request for user {request.username}, ID {identifier}")
 
         context.add_callback(self.__GrpcChannelClosedCallback)
 
@@ -26,18 +27,18 @@ class ProductsServicer(ProductsManagerServicer):
         for item in self.productsQueue:
             if (item is None):
                 self.logger.debug(
-                    f"Monitoring ended for user {request.username}")
+                    f"Monitoring ended for user {request.username}, ID {identifier}")
                 return
 
             if (item.HasField("keepAlive")):
-                self.logger.debug("Sending KeepAlive")
+                self.logger.debug(f"Sending KeepAlive, ID {identifier}")
             else:
                 self.logger.debug(
-                    f"Gotten {item.productResponse.id} {item.productResponse.store.name} from queue. Returning it to the client")
+                    f"Gotten {item.productResponse.id} {item.productResponse.store.name} from queue. Returning it to the client. ID {identifier}")
             yield item
 
     def __GrpcChannelClosedCallback(self):
-        self.logger.debug("GRPC channel has been closed")
+        self.logger.debug("GRPC channel has been closed, ID {identifier}")
         self.productsQueue.StopMonitoring()
 
     def __InitLogging(self):
