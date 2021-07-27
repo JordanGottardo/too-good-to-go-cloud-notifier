@@ -173,7 +173,7 @@ class ProductsQueue():
         return str(self.productsIdAndKeepaliveQueue.qsize())
 
     def _GetQueueCleanupIntervalSeconds(self):
-        return self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS * 60 * 60
+        return self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS * 24 * 60 * 60
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
