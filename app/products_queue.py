@@ -42,6 +42,7 @@ class ProductsQueue():
             self.keepAliveTimer.cancel()
             self.monitoringStopped = True
             self.client.StopMonitor()
+            self.productsIdAndKeepaliveQueue.put(self.__AKeepAliveMessage())
 
     def __next(self):
         self.logger.debug(
@@ -165,15 +166,18 @@ class ProductsQueue():
             if (not self.queueContainsKeepAlive):
                 self.logger.debug("Adding keepAlive to queue")
                 self.queueContainsKeepAlive = True
-                productServerMessage = ProductServerMessage()
-                productServerMessage.keepAlive.CopyFrom(KeepAlive())
-                self.productsIdAndKeepaliveQueue.put(productServerMessage)
+                self.productsIdAndKeepaliveQueue.put(self.__AKeepAliveMessage())
 
     def __GetProductIdQueueLength(self):
         return str(self.productsIdAndKeepaliveQueue.qsize())
 
     def _GetQueueCleanupIntervalSeconds(self):
         return self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS * 24 * 60 * 60
+
+    def __AKeepAliveMessage(self):
+        productServerMessage = ProductServerMessage()
+        productServerMessage.keepAlive.CopyFrom(KeepAlive())
+        return productServerMessage
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")

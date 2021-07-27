@@ -54,6 +54,7 @@ class ProductsServicer(ProductsManagerServicer):
             f"Monitoring ended for user {productRequest.username}, ID {identifier}")
 
     def __StartReceivingKeepAlivesAsync(self, requestIterator, identifier):
+        self.keepAliveCache.AddOrUpdate(identifier, datetime.now())
         thread = threading.Thread(
             target=self.__StartReceivingKeepAlives, args=(requestIterator, identifier))
         thread.daemon = True
