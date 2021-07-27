@@ -14,9 +14,9 @@ class ProductsManagerStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.GetProducts = channel.unary_stream(
+        self.GetProducts = channel.stream_stream(
                 '/ProductsManager/GetProducts',
-                request_serializer=products__pb2.ProductRequest.SerializeToString,
+                request_serializer=products__pb2.ProductClientMessage.SerializeToString,
                 response_deserializer=products__pb2.ProductServerMessage.FromString,
                 )
 
@@ -24,7 +24,7 @@ class ProductsManagerStub(object):
 class ProductsManagerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def GetProducts(self, request, context):
+    def GetProducts(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -33,9 +33,9 @@ class ProductsManagerServicer(object):
 
 def add_ProductsManagerServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'GetProducts': grpc.unary_stream_rpc_method_handler(
+            'GetProducts': grpc.stream_stream_rpc_method_handler(
                     servicer.GetProducts,
-                    request_deserializer=products__pb2.ProductRequest.FromString,
+                    request_deserializer=products__pb2.ProductClientMessage.FromString,
                     response_serializer=products__pb2.ProductServerMessage.SerializeToString,
             ),
     }
@@ -49,7 +49,7 @@ class ProductsManager(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def GetProducts(request,
+    def GetProducts(request_iterator,
             target,
             options=(),
             channel_credentials=None,
@@ -59,8 +59,8 @@ class ProductsManager(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/ProductsManager/GetProducts',
-            products__pb2.ProductRequest.SerializeToString,
+        return grpc.experimental.stream_stream(request_iterator, target, '/ProductsManager/GetProducts',
+            products__pb2.ProductClientMessage.SerializeToString,
             products__pb2.ProductServerMessage.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

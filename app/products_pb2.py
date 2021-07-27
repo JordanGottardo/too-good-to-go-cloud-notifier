@@ -19,10 +19,54 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0eproducts.proto\"4\n\x0eProductRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"o\n\x14ProductServerMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12+\n\x0fproductResponse\x18\x02 \x01(\x0b\x32\x10.ProductResponseH\x00\x42\t\n\x07message\"\x0b\n\tKeepAlive\"m\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x05\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\x05\x12\x16\n\x0epickupLocation\x18\x04 \x01(\t\x12\x15\n\x05store\x18\x05 \x01(\x0b\x32\x06.Store\"4\n\x05Store\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x0c\n\x04\x63ity\x18\x03 \x01(\t2L\n\x0fProductsManager\x12\x39\n\x0bGetProducts\x12\x0f.ProductRequest\x1a\x15.ProductServerMessage\"\x00\x30\x01\x62\x06proto3'
+  serialized_pb=b'\n\x0eproducts.proto\"m\n\x14ProductClientMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12)\n\x0eproductRequest\x18\x02 \x01(\x0b\x32\x0f.ProductRequestH\x00\x42\t\n\x07message\"4\n\x0eProductRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"o\n\x14ProductServerMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12+\n\x0fproductResponse\x18\x02 \x01(\x0b\x32\x10.ProductResponseH\x00\x42\t\n\x07message\"\x0b\n\tKeepAlive\"m\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x05\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\x05\x12\x16\n\x0epickupLocation\x18\x04 \x01(\t\x12\x15\n\x05store\x18\x05 \x01(\x0b\x32\x06.Store\"4\n\x05Store\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x0c\n\x04\x63ity\x18\x03 \x01(\t2T\n\x0fProductsManager\x12\x41\n\x0bGetProducts\x12\x15.ProductClientMessage\x1a\x15.ProductServerMessage\"\x00(\x01\x30\x01\x62\x06proto3'
 )
 
 
+
+
+_PRODUCTCLIENTMESSAGE = _descriptor.Descriptor(
+  name='ProductClientMessage',
+  full_name='ProductClientMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='keepAlive', full_name='ProductClientMessage.keepAlive', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='productRequest', full_name='ProductClientMessage.productRequest', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='message', full_name='ProductClientMessage.message',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=18,
+  serialized_end=127,
+)
 
 
 _PRODUCTREQUEST = _descriptor.Descriptor(
@@ -59,8 +103,8 @@ _PRODUCTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=18,
-  serialized_end=70,
+  serialized_start=129,
+  serialized_end=181,
 )
 
 
@@ -103,8 +147,8 @@ _PRODUCTSERVERMESSAGE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=72,
-  serialized_end=183,
+  serialized_start=183,
+  serialized_end=294,
 )
 
 
@@ -128,8 +172,8 @@ _KEEPALIVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=185,
-  serialized_end=196,
+  serialized_start=296,
+  serialized_end=307,
 )
 
 
@@ -188,8 +232,8 @@ _PRODUCTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=198,
-  serialized_end=307,
+  serialized_start=309,
+  serialized_end=418,
 )
 
 
@@ -234,10 +278,18 @@ _STORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=309,
-  serialized_end=361,
+  serialized_start=420,
+  serialized_end=472,
 )
 
+_PRODUCTCLIENTMESSAGE.fields_by_name['keepAlive'].message_type = _KEEPALIVE
+_PRODUCTCLIENTMESSAGE.fields_by_name['productRequest'].message_type = _PRODUCTREQUEST
+_PRODUCTCLIENTMESSAGE.oneofs_by_name['message'].fields.append(
+  _PRODUCTCLIENTMESSAGE.fields_by_name['keepAlive'])
+_PRODUCTCLIENTMESSAGE.fields_by_name['keepAlive'].containing_oneof = _PRODUCTCLIENTMESSAGE.oneofs_by_name['message']
+_PRODUCTCLIENTMESSAGE.oneofs_by_name['message'].fields.append(
+  _PRODUCTCLIENTMESSAGE.fields_by_name['productRequest'])
+_PRODUCTCLIENTMESSAGE.fields_by_name['productRequest'].containing_oneof = _PRODUCTCLIENTMESSAGE.oneofs_by_name['message']
 _PRODUCTSERVERMESSAGE.fields_by_name['keepAlive'].message_type = _KEEPALIVE
 _PRODUCTSERVERMESSAGE.fields_by_name['productResponse'].message_type = _PRODUCTRESPONSE
 _PRODUCTSERVERMESSAGE.oneofs_by_name['message'].fields.append(
@@ -247,12 +299,20 @@ _PRODUCTSERVERMESSAGE.oneofs_by_name['message'].fields.append(
   _PRODUCTSERVERMESSAGE.fields_by_name['productResponse'])
 _PRODUCTSERVERMESSAGE.fields_by_name['productResponse'].containing_oneof = _PRODUCTSERVERMESSAGE.oneofs_by_name['message']
 _PRODUCTRESPONSE.fields_by_name['store'].message_type = _STORE
+DESCRIPTOR.message_types_by_name['ProductClientMessage'] = _PRODUCTCLIENTMESSAGE
 DESCRIPTOR.message_types_by_name['ProductRequest'] = _PRODUCTREQUEST
 DESCRIPTOR.message_types_by_name['ProductServerMessage'] = _PRODUCTSERVERMESSAGE
 DESCRIPTOR.message_types_by_name['KeepAlive'] = _KEEPALIVE
 DESCRIPTOR.message_types_by_name['ProductResponse'] = _PRODUCTRESPONSE
 DESCRIPTOR.message_types_by_name['Store'] = _STORE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+ProductClientMessage = _reflection.GeneratedProtocolMessageType('ProductClientMessage', (_message.Message,), {
+  'DESCRIPTOR' : _PRODUCTCLIENTMESSAGE,
+  '__module__' : 'products_pb2'
+  # @@protoc_insertion_point(class_scope:ProductClientMessage)
+  })
+_sym_db.RegisterMessage(ProductClientMessage)
 
 ProductRequest = _reflection.GeneratedProtocolMessageType('ProductRequest', (_message.Message,), {
   'DESCRIPTOR' : _PRODUCTREQUEST,
@@ -298,15 +358,15 @@ _PRODUCTSMANAGER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=363,
-  serialized_end=439,
+  serialized_start=474,
+  serialized_end=558,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetProducts',
     full_name='ProductsManager.GetProducts',
     index=0,
     containing_service=None,
-    input_type=_PRODUCTREQUEST,
+    input_type=_PRODUCTCLIENTMESSAGE,
     output_type=_PRODUCTSERVERMESSAGE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,

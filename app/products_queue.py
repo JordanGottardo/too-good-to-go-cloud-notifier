@@ -36,8 +36,12 @@ class ProductsQueue():
         return self.__next()
 
     def StopMonitoring(self):
-        self.monitoringStopped = True
-        self.client.StopMonitor()
+        with self.keepAliveLock:
+            self.logger.debug("ProductsQueue StopMonitoring")
+            self.periodicalCleanUpTimer.cancel()
+            self.keepAliveTimer.cancel()
+            self.monitoringStopped = True
+            self.client.StopMonitor()
 
     def __next(self):
         self.logger.debug(
@@ -46,7 +50,7 @@ class ProductsQueue():
         productIdOrKeepalive = self.productsIdAndKeepaliveQueue.get()
 
         if (self.monitoringStopped):
-            return
+            raise StopIteration()
 
         with self.keepAliveLock:
             if (type(productIdOrKeepalive) is ProductServerMessage):
@@ -89,7 +93,6 @@ class ProductsQueue():
 
     def __productsReceivedEventHandler(self, products: list[Product]):
         with self.productsLock:
-            self.logger.debug(f"ProductsQueue __productsReceivedEventHandler")
             toBeInsertedInQueue = []
             toBeRemovedFromQueue = []
 
@@ -141,10 +144,10 @@ class ProductsQueue():
     def __PeriodicCleanUpTask(self):
         self.logger.debug(
             f"ProductsQueue __PeriodicCleanUpTask: found {self.__GetProductIdQueueLength()} products in queue, removing all of them")
-        timer = threading.Timer(
+        self.periodicalCleanUpTimer = threading.Timer(
             self._GetQueueCleanupIntervalSeconds(), self.__PeriodicCleanUpTask)
-        timer.daemon = True
-        timer.start()
+        self.periodicalCleanUpTimer.daemon = True
+        self.periodicalCleanUpTimer.start()
         with self.productsLock:
             with self.keepAliveLock:
                 with self.productsIdAndKeepaliveQueue.mutex:
@@ -155,9 +158,9 @@ class ProductsQueue():
         self.__HeartBeatTask()
 
     def __HeartBeatTask(self):
-        timer = threading.Timer(20, self.__HeartBeatTask)
-        timer.daemon = True
-        timer.start()
+        self.keepAliveTimer = threading.Timer(20, self.__HeartBeatTask)
+        self.keepAliveTimer.daemon = True
+        self.keepAliveTimer.start()
         with self.keepAliveLock:
             if (not self.queueContainsKeepAlive):
                 self.logger.debug("Adding keepAlive to queue")

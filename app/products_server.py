@@ -1,45 +1,76 @@
 from concurrent import futures
+from datetime import datetime
 import logging
+from keep_alive_cache import KeepAliveCache
+from products_queue_cache import ProductsQueueCache
 from too_good_to_go_client import TooGoodToGoClient
 from products_queue import ProductsQueue
 import grpc
 from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
 from products_pb2 import ProductRequest
 import random
+import uuid
+import threading
 
 
 class ProductsServicer(ProductsManagerServicer):
 
-    def __init__(self):
+    def __init__(self, productsQueueCache: ProductsQueueCache, keepAliveCache: KeepAliveCache):
         self.__InitLogging()
-
         self.logger.info("ProductsServicer constructor")
+        self.productsQueueCache = productsQueueCache
+        self.keepAliveCache = keepAliveCache
 
-    def GetProducts(self, request: ProductRequest, context):
-        identifier = random.randint(0, 99999999999999999999999999999999)
-        self.logger.info(f"Received request for user {request.username}, ID {identifier}")
+    def GetProducts(self, requestIterator, context):
+        identifier = uuid.uuid4()
+        productRequest = next(requestIterator).productRequest
+        self.logger.info(
+            f"Received request for user {productRequest.username}, ID {identifier}")
 
-        context.add_callback(self.__GrpcChannelClosedCallback)
-
-        client = TooGoodToGoClient(request.username, request.password)
+        client = TooGoodToGoClient(
+            productRequest.username, productRequest.password)
         client.StartMonitor()
-        self.productsQueue = ProductsQueue(client)
-        for item in self.productsQueue:
-            if (item is None):
-                self.logger.debug(
-                    f"Monitoring ended for user {request.username}, ID {identifier}")
-                return
+        productsQueue = ProductsQueue(client)
 
+        def __GrpcChannelClosedCallback():
+            self.logger.debug(
+                f"GRPC channel has been closed from client, ID {identifier}")
+            productsQueue.StopMonitoring()
+
+        context.add_callback(__GrpcChannelClosedCallback)
+
+        self.productsQueueCache.Add(identifier, productsQueue)
+        self.__StartReceivingKeepAlivesAsync(requestIterator, identifier)
+
+        for item in productsQueue:
             if (item.HasField("keepAlive")):
                 self.logger.debug(f"Sending KeepAlive, ID {identifier}")
             else:
                 self.logger.debug(
                     f"Gotten {item.productResponse.id} {item.productResponse.store.name} from queue. Returning it to the client. ID {identifier}")
             yield item
+            
+        self.logger.debug(
+            f"Monitoring ended for user {productRequest.username}, ID {identifier}")
 
-    def __GrpcChannelClosedCallback(self):
-        self.logger.debug("GRPC channel has been closed, ID {identifier}")
-        self.productsQueue.StopMonitoring()
+    def __StartReceivingKeepAlivesAsync(self, requestIterator, identifier):
+        thread = threading.Thread(
+            target=self.__StartReceivingKeepAlives, args=(requestIterator, identifier))
+        thread.daemon = True
+        thread.start()
+
+    def __StartReceivingKeepAlives(self, requestIterator, identifier):
+        try:
+            for request in requestIterator:
+                if (request.HasField("keepAlive")):
+                    self.logger.debug(
+                        f"Received KeepAlive from client {identifier}")
+                    self.keepAliveCache.AddOrUpdate(identifier, datetime.now())
+                else:
+                    self.logger.debug(
+                        f"Unknown request received from client {identifier}")
+        except:
+            self.logger.debug("Error while reading keepAlives from client")
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
@@ -59,7 +90,11 @@ def serve():
     ]
     server = grpc.server(futures.ThreadPoolExecutor(
         max_workers=10), options=options)
-    add_ProductsManagerServicer_to_server(ProductsServicer(), server)
+    productsQueueCache = ProductsQueueCache()
+    keepAliveCache = KeepAliveCache(productsQueueCache)
+
+    add_ProductsManagerServicer_to_server(
+        ProductsServicer(productsQueueCache, keepAliveCache), server)
     server.add_insecure_port('[::]:50051')
     server.start()
     print("Server started")

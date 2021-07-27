@@ -26,18 +26,18 @@ class TooGoodToGoClient:
         self.__GetProductsPeriodically()
 
     def StopMonitor(self):
+        self.logger.debug("TooGoodToGoClient: StopMonitor")
         self.monitoringStopped = True
+        self.timer.cancel()
 
     def __GetProducts(self):
         return self.__ToAvailableProducts(self.client.get_items())
 
     def __GetProductsPeriodically(self):
         if (not self.monitoringStopped):
-            timer = threading.Timer(30, self.__GetProductsPeriodically)
-            self.logger.debug(
-                "TooGoodToGoClient timer ticked: getting products")
-            timer.daemon = True
-            timer.start()
+            self.timer = threading.Timer(30, self.__GetProductsPeriodically)
+            self.timer.daemon = True
+            self.timer.start()
             self.event(self.__GetProducts())
 
     def __ToAvailableProducts(self, productsFromClient: list):

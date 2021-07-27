@@ -3,6 +3,8 @@ import grpc
 import products_pb2
 import products_pb2_grpc
 from datetime import datetime
+import threading
+import time
 
 def run():
     credentials = grpc.ssl_channel_credentials()
@@ -15,14 +17,12 @@ def run():
         ('grpc.http2.min_ping_interval_without_data_ms', 5000),
     ]
 
-    with grpc.secure_channel("too-good-to-go-cloud-notifier.jordangottardo.com:50051", credentials, options=options) as channel:
-    # with grpc.insecure_channel("localhost:50051") as channel:
+    # with grpc.secure_channel("too-good-to-go-cloud-notifier.jordangottardo.com:50051", credentials, options=options) as channel:
+    with grpc.insecure_channel("localhost:50051") as channel:
         stub = products_pb2_grpc.ProductsManagerStub(channel)
         print("-------------- Products --------------")
-        user = products_pb2.ProductRequest(username="<username>", password="<password>")
-        print(f"Getting products for user {user.username}")
 
-        messages = stub.GetProducts(user)
+        messages = stub.GetProducts(SendKeepAlives())
 
         for message in messages:
             if (message.HasField("keepAlive")):
@@ -33,6 +33,20 @@ def run():
                 f"Price = {product.price}\n"
                 f"StoreID = {product.store.name}")
 
+def SendKeepAlives():
+    clientMessage = products_pb2.ProductClientMessage()
+    clientMessage.productRequest.CopyFrom(products_pb2.ProductRequest(username="user", password="pwd"))
+    print(f"Getting products for user {clientMessage.productRequest.username}")
+    
+    yield clientMessage
+
+    while True:
+        print("Sleeping")
+        time.sleep(10)
+        clientMessage = products_pb2.ProductClientMessage()
+        clientMessage.keepAlive.CopyFrom(products_pb2.KeepAlive())
+        print("Returning keepAlive")
+        yield clientMessage
 
 if __name__ == "__main__":
     logging.basicConfig()
