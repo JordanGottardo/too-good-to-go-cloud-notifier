@@ -6,6 +6,7 @@ from datetime import datetime
 import threading
 import time
 
+
 def run():
     credentials = grpc.ssl_channel_credentials()
     options = [
@@ -20,6 +21,12 @@ def run():
     # with grpc.secure_channel("too-good-to-go-cloud-notifier.jordangottardo.com:50051", credentials, options=options) as channel:
     with grpc.insecure_channel("localhost:50051") as channel:
         stub = products_pb2_grpc.ProductsManagerStub(channel)
+
+        startMonitoringRequest = products_pb2.ProductMonitoringRequest(username="username",
+                                                                       password="psw")
+        stub.StartMonitoring(startMonitoringRequest)
+        stub.StartMonitoring
+
         print("-------------- Products --------------")
 
         messages = stub.GetProducts(SendKeepAlives())
@@ -30,14 +37,16 @@ def run():
             else:
                 product = message.productResponse
                 print(f"{datetime.now()} ID = {product.id}\n"
-                f"Price = {product.price}\n"
-                f"StoreID = {product.store.name}")
+                      f"Price = {product.price}\n"
+                      f"StoreID = {product.store.name}")
+
 
 def SendKeepAlives():
     clientMessage = products_pb2.ProductClientMessage()
-    clientMessage.productRequest.CopyFrom(products_pb2.ProductRequest(username="user", password="pwd"))
+    clientMessage.productRequest.CopyFrom(
+        products_pb2.ProductRequest(username="username"))
     print(f"Getting products for user {clientMessage.productRequest.username}")
-    
+
     yield clientMessage
 
     while True:
@@ -47,6 +56,7 @@ def SendKeepAlives():
         clientMessage.keepAlive.CopyFrom(products_pb2.KeepAlive())
         print("Returning keepAlive")
         yield clientMessage
+
 
 if __name__ == "__main__":
     logging.basicConfig()

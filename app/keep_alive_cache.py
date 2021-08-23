@@ -34,12 +34,10 @@ class KeepAliveCache():
             for identifier, timestamp in self.keepAliveDictionary.items():
                 if self.__IsSubscriptionStale(timestamp):
                     self.logger.debug(
-                        f"Removing stale subscription {identifier}")
+                        f"KeepAliveCache: Removing stale subscription {identifier}")
                     identifiersToRemove.append(identifier)
-                    self.productsQueueCache.Get(
-                        identifier).StopMonitoring()
-            self.__RemoveTimestampsForRemovedSubscriptions(
-                identifiersToRemove)
+                    self.productsQueueCache.SoftStopMonitoring(identifier)
+            self.__RemoveTimestampsForRemovedSubscriptions(identifiersToRemove)
 
     def __RemoveTimestampsForRemovedSubscriptions(self, identifiersToRemove):
         for id in identifiersToRemove:
