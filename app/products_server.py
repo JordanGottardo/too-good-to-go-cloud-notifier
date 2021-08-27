@@ -7,7 +7,7 @@ from too_good_to_go_client import TooGoodToGoClient
 from products_queue import ProductsQueue
 import grpc
 from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
-from products_pb2 import Empty, ProductMonitoringRequest, ProductRequest
+from products_pb2 import Empty, ProductMonitoringRequest, ProductRequest, ProductStopMonitoringRequest
 import random
 import uuid
 import threading
@@ -36,6 +36,18 @@ class ProductsServicer(ProductsManagerServicer):
         productsQueue = ProductsQueue(client)
         productsQueue.StartMonitoring()
         self.productsQueueCache.Add(username, productsQueue)
+        return Empty()
+
+    def StopMonitoring(self, request: ProductStopMonitoringRequest, context):
+        self.logger.info(
+            f"ProductsServicer: Received StopMonitoring request for user {request.username}")
+        username = request.username
+
+        if (self.productsQueueCache.Contains(username)):
+            self.productsQueueCache.HardStopMonitoring(username)
+        else:
+            self.logger.info(f"ProductsServicer: No subscription for user {username} is active")
+
         return Empty()
 
     def GetProducts(self, requestIterator, context):
