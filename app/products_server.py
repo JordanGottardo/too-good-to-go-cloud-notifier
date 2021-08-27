@@ -46,7 +46,8 @@ class ProductsServicer(ProductsManagerServicer):
         if (self.productsQueueCache.Contains(username)):
             self.productsQueueCache.HardStopMonitoring(username)
         else:
-            self.logger.info(f"ProductsServicer: No subscription for user {username} is active")
+            self.logger.info(
+                f"ProductsServicer: No subscription for user {username} is active")
 
         return Empty()
 
