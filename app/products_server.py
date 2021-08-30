@@ -1,7 +1,7 @@
 from concurrent import futures
 from datetime import datetime
 import logging
-from keep_alive_cache import KeepAliveCache
+from keep_alive_cache import ShortLivedKeepAliveCache, LongLivedKeepAliveCache
 from products_queue_cache import ProductsQueueCache
 from too_good_to_go_client import TooGoodToGoClient
 from products_queue import ProductsQueue
@@ -15,11 +15,16 @@ import threading
 
 class ProductsServicer(ProductsManagerServicer):
 
-    def __init__(self, productsQueueCache: ProductsQueueCache, keepAliveCache: KeepAliveCache):
+    def __init__(
+            self,
+            productsQueueCache: ProductsQueueCache,
+            shortLivedKeepAliveCache: ShortLivedKeepAliveCache,
+            longLivedKeepAliveCache: LongLivedKeepAliveCache):
         self.__InitLogging()
         self.logger.info("ProductsServicer constructor")
         self.productsQueueCache = productsQueueCache
-        self.keepAliveCache = keepAliveCache
+        self.shortLivedKeepAliveCache = shortLivedKeepAliveCache
+        self.longLivedKeepAliveCache = longLivedKeepAliveCache
 
     def StartMonitoring(self, request: ProductMonitoringRequest, context):
         self.logger.info(
@@ -36,6 +41,7 @@ class ProductsServicer(ProductsManagerServicer):
         productsQueue = ProductsQueue(client)
         productsQueue.StartMonitoring()
         self.productsQueueCache.Add(username, productsQueue)
+        self.longLivedKeepAliveCache.AddOrUpdate(username, datetime.now())
         return Empty()
 
     def StopMonitoring(self, request: ProductStopMonitoringRequest, context):
@@ -85,13 +91,14 @@ class ProductsServicer(ProductsManagerServicer):
         def __GrpcChannelClosedCallback():
             if (self.productsQueueCache.Contains(username)):
                 self.logger.debug(
-                f"ProductsServicer: GRPC channel has been closed from client, User {username}")
+                    f"ProductsServicer: GRPC channel has been closed from client, User {username}")
                 self.productsQueueCache.SoftStopMonitoring(username)
 
         context.add_callback(__GrpcChannelClosedCallback)
 
     def __StartReceivingKeepAlivesAsync(self, requestIterator, identifier):
-        self.keepAliveCache.AddOrUpdate(identifier, datetime.now())
+        self.shortLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
+        self.longLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
         thread = threading.Thread(
             target=self.__StartReceivingKeepAlives, args=(requestIterator, identifier))
         thread.daemon = True
@@ -130,10 +137,14 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(
         max_workers=10), options=options)
     productsQueueCache = ProductsQueueCache()
-    keepAliveCache = KeepAliveCache(productsQueueCache)
+    shortLivedKeepAliveCache = ShortLivedKeepAliveCache(productsQueueCache)
+    longLivedKeepAliveCache = LongLivedKeepAliveCache(productsQueueCache)
+    productsServicer = ProductsServicer(
+        productsQueueCache,
+        shortLivedKeepAliveCache,
+        longLivedKeepAliveCache)
 
-    add_ProductsManagerServicer_to_server(
-        ProductsServicer(productsQueueCache, keepAliveCache), server)
+    add_ProductsManagerServicer_to_server(productsServicer, server)
     server.add_insecure_port('[::]:50051')
     server.start()
     print("Server started")
