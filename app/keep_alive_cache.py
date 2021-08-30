@@ -30,13 +30,14 @@ class KeepAliveCacheBase(ABC):
         pass
 
     def AddOrUpdate(self, id, timestamp):
-        prevKeepAliveDictionaryLength = len(self.keepAliveDictionary)
-        self.keepAliveDictionary[id] = timestamp
-        if prevKeepAliveDictionaryLength == 0:
-            self.logger.debug(
-                f"{self.ClassNameForLogging}: Starting subscription stale removal timer")
-            self.stopSubscriptionStaleTimer = False
-            self.__StartStoppingStaleSubscriptions()
+        with self.lock:
+            prevKeepAliveDictionaryLength = len(self.keepAliveDictionary)
+            self.keepAliveDictionary[id] = timestamp
+            if prevKeepAliveDictionaryLength == 0:
+                self.logger.debug(
+                    f"{self.ClassNameForLogging}: Starting subscription stale removal timer")
+                self.stopSubscriptionStaleTimer = False
+                self.__StartStoppingStaleSubscriptions()
 
     def __StartStoppingStaleSubscriptions(self):
         if (not self.stopSubscriptionStaleTimer):
@@ -46,13 +47,14 @@ class KeepAliveCacheBase(ABC):
             timer.start()
             identifiersToRemove = []
 
-            for identifier, timestamp in self.keepAliveDictionary.items():
-                if self.__IsSubscriptionStale(timestamp):
-                    self.logger.debug(
-                        f"{self.ClassNameForLogging}: Removing stale subscription {identifier}")
-                    identifiersToRemove.append(identifier)
-                    self.Stop(identifier)
-            self.__RemoveTimestampsForRemovedSubscriptions(identifiersToRemove)
+            with self.lock:
+                for identifier, timestamp in self.keepAliveDictionary.items():
+                    if self.__IsSubscriptionStale(timestamp):
+                        self.logger.debug(
+                            f"{self.ClassNameForLogging}: Removing stale subscription {identifier}")
+                        identifiersToRemove.append(identifier)
+                        self.Stop(identifier)
+                self.__RemoveTimestampsForRemovedSubscriptions(identifiersToRemove)
 
     def __RemoveTimestampsForRemovedSubscriptions(self, identifiersToRemove):
         for id in identifiersToRemove:
