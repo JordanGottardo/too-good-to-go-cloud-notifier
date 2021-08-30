@@ -81,7 +81,7 @@ class ShortLivedKeepAliveCache(KeepAliveCacheBase):
         self.productsQueueCache.SoftStopMonitoring(identifier)
 
 class LongLivedKeepAliveCache(KeepAliveCacheBase):
-    SubscriptionStaleTimeoutSeconds = 60 * 60 # 1 day
+    SubscriptionStaleTimeoutSeconds = 60 * 60 * 24
 
     ClassNameForLogging = "LongLivedKeepAliveCache"
 
