@@ -14,6 +14,16 @@ class ProductsManagerStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.StartMonitoring = channel.unary_unary(
+                '/ProductsManager/StartMonitoring',
+                request_serializer=products__pb2.ProductMonitoringRequest.SerializeToString,
+                response_deserializer=products__pb2.Empty.FromString,
+                )
+        self.StopMonitoring = channel.unary_unary(
+                '/ProductsManager/StopMonitoring',
+                request_serializer=products__pb2.ProductStopMonitoringRequest.SerializeToString,
+                response_deserializer=products__pb2.Empty.FromString,
+                )
         self.GetProducts = channel.stream_stream(
                 '/ProductsManager/GetProducts',
                 request_serializer=products__pb2.ProductClientMessage.SerializeToString,
@@ -24,6 +34,18 @@ class ProductsManagerStub(object):
 class ProductsManagerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
+    def StartMonitoring(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StopMonitoring(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetProducts(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -33,6 +55,16 @@ class ProductsManagerServicer(object):
 
 def add_ProductsManagerServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'StartMonitoring': grpc.unary_unary_rpc_method_handler(
+                    servicer.StartMonitoring,
+                    request_deserializer=products__pb2.ProductMonitoringRequest.FromString,
+                    response_serializer=products__pb2.Empty.SerializeToString,
+            ),
+            'StopMonitoring': grpc.unary_unary_rpc_method_handler(
+                    servicer.StopMonitoring,
+                    request_deserializer=products__pb2.ProductStopMonitoringRequest.FromString,
+                    response_serializer=products__pb2.Empty.SerializeToString,
+            ),
             'GetProducts': grpc.stream_stream_rpc_method_handler(
                     servicer.GetProducts,
                     request_deserializer=products__pb2.ProductClientMessage.FromString,
@@ -47,6 +79,40 @@ def add_ProductsManagerServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class ProductsManager(object):
     """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def StartMonitoring(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/ProductsManager/StartMonitoring',
+            products__pb2.ProductMonitoringRequest.SerializeToString,
+            products__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StopMonitoring(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/ProductsManager/StopMonitoring',
+            products__pb2.ProductStopMonitoringRequest.SerializeToString,
+            products__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetProducts(request_iterator,

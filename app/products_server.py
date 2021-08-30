@@ -1,13 +1,13 @@
 from concurrent import futures
 from datetime import datetime
 import logging
-from keep_alive_cache import KeepAliveCache
+from keep_alive_cache import ShortLivedKeepAliveCache, LongLivedKeepAliveCache
 from products_queue_cache import ProductsQueueCache
 from too_good_to_go_client import TooGoodToGoClient
 from products_queue import ProductsQueue
 import grpc
 from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
-from products_pb2 import ProductRequest
+from products_pb2 import Empty, ProductMonitoringRequest, ProductRequest, ProductStopMonitoringRequest
 import random
 import uuid
 import threading
@@ -15,46 +15,90 @@ import threading
 
 class ProductsServicer(ProductsManagerServicer):
 
-    def __init__(self, productsQueueCache: ProductsQueueCache, keepAliveCache: KeepAliveCache):
+    def __init__(
+            self,
+            productsQueueCache: ProductsQueueCache,
+            shortLivedKeepAliveCache: ShortLivedKeepAliveCache,
+            longLivedKeepAliveCache: LongLivedKeepAliveCache):
         self.__InitLogging()
         self.logger.info("ProductsServicer constructor")
         self.productsQueueCache = productsQueueCache
-        self.keepAliveCache = keepAliveCache
+        self.shortLivedKeepAliveCache = shortLivedKeepAliveCache
+        self.longLivedKeepAliveCache = longLivedKeepAliveCache
+
+    def StartMonitoring(self, request: ProductMonitoringRequest, context):
+        self.logger.info(
+            f"ProductsServicer: Received StartMonitoring request for user {request.username}")
+        username = request.username
+
+        if (self.productsQueueCache.Contains(username)):
+            self.logger.error(
+                f"ProductsServicer: Subscription for user {username} already exists. Either use the GetProducts RPC or Stop then Start subscription")
+            context.abort(grpc.StatusCode.ALREADY_EXISTS,
+                          f"Subscription for user {username} already exists")
+
+        client = TooGoodToGoClient(username, request.password)
+        productsQueue = ProductsQueue(client)
+        productsQueue.StartMonitoring()
+        self.productsQueueCache.Add(username, productsQueue)
+        self.longLivedKeepAliveCache.AddOrUpdate(username, datetime.now())
+        return Empty()
+
+    def StopMonitoring(self, request: ProductStopMonitoringRequest, context):
+        self.logger.info(
+            f"ProductsServicer: Received StopMonitoring request for user {request.username}")
+        username = request.username
+
+        if (self.productsQueueCache.Contains(username)):
+            self.productsQueueCache.HardStopMonitoring(username)
+        else:
+            self.logger.info(
+                f"ProductsServicer: No subscription for user {username} is active")
+
+        return Empty()
 
     def GetProducts(self, requestIterator, context):
-        identifier = uuid.uuid4()
         productRequest = next(requestIterator).productRequest
+        username = productRequest.username
+
         self.logger.info(
-            f"Received request for user {productRequest.username}, ID {identifier}")
+            f"ProductsServicer: Received GetProducts request for user {username}")
 
-        client = TooGoodToGoClient(
-            productRequest.username, productRequest.password)
-        client.StartMonitor()
-        productsQueue = ProductsQueue(client)
+        if (not self.productsQueueCache.Contains(username)):
+            self.logger.error(
+                f"ProductsServicer: Monitoring has not yet started for user {username}. Invoke StartMonitoring RPC before this one")
+            context.abort(grpc.StatusCode.FAILED_PRECONDITION,
+                          "Monitoring has not yet started. Invoke StartMonitoring RPC before this one")
 
+        self.__AddChannelClosedCallback(context, username)
+
+        self.__StartReceivingKeepAlivesAsync(requestIterator, username)
+        self.productsQueueCache.RestartMonitoring(username)
+
+        for item in self.productsQueueCache.Get(username):
+            if (item.HasField("keepAlive")):
+                self.logger.debug(
+                    f"ProductsServicer: Sending KeepAlive, user {username}")
+            else:
+                self.logger.debug(
+                    f"Gotten {item.productResponse.id} {item.productResponse.store.name} from queue. Returning it to the client. User {username}")
+            yield item
+
+        self.logger.debug(
+            f"ProductsServicer: Channel closed for user {username}. Returning from GetProducts RPC")
+
+    def __AddChannelClosedCallback(self, context, username):
         def __GrpcChannelClosedCallback():
-            self.logger.debug(
-                f"GRPC channel has been closed from client, ID {identifier}")
-            productsQueue.StopMonitoring()
+            if (self.productsQueueCache.Contains(username)):
+                self.logger.debug(
+                    f"ProductsServicer: GRPC channel has been closed from client, User {username}")
+                self.productsQueueCache.SoftStopMonitoring(username)
 
         context.add_callback(__GrpcChannelClosedCallback)
 
-        self.productsQueueCache.Add(identifier, productsQueue)
-        self.__StartReceivingKeepAlivesAsync(requestIterator, identifier)
-
-        for item in productsQueue:
-            if (item.HasField("keepAlive")):
-                self.logger.debug(f"Sending KeepAlive, ID {identifier}")
-            else:
-                self.logger.debug(
-                    f"Gotten {item.productResponse.id} {item.productResponse.store.name} from queue. Returning it to the client. ID {identifier}")
-            yield item
-            
-        self.logger.debug(
-            f"Monitoring ended for user {productRequest.username}, ID {identifier}")
-
     def __StartReceivingKeepAlivesAsync(self, requestIterator, identifier):
-        self.keepAliveCache.AddOrUpdate(identifier, datetime.now())
+        self.shortLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
+        self.longLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
         thread = threading.Thread(
             target=self.__StartReceivingKeepAlives, args=(requestIterator, identifier))
         thread.daemon = True
@@ -65,13 +109,14 @@ class ProductsServicer(ProductsManagerServicer):
             for request in requestIterator:
                 if (request.HasField("keepAlive")):
                     self.logger.debug(
-                        f"Received KeepAlive from client {identifier}")
+                        f"ProductsServicer:: Received KeepAlive from client {identifier}")
                     self.keepAliveCache.AddOrUpdate(identifier, datetime.now())
                 else:
                     self.logger.debug(
-                        f"Unknown request received from client {identifier}")
+                        f"ProductsServicer: Unknown request received from client {identifier}")
         except:
-            self.logger.debug("Error while reading keepAlives from client")
+            self.logger.debug(
+                "ProductsServicer: Error while reading keepAlives from client")
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
@@ -92,10 +137,14 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(
         max_workers=10), options=options)
     productsQueueCache = ProductsQueueCache()
-    keepAliveCache = KeepAliveCache(productsQueueCache)
+    shortLivedKeepAliveCache = ShortLivedKeepAliveCache(productsQueueCache)
+    longLivedKeepAliveCache = LongLivedKeepAliveCache(productsQueueCache)
+    productsServicer = ProductsServicer(
+        productsQueueCache,
+        shortLivedKeepAliveCache,
+        longLivedKeepAliveCache)
 
-    add_ProductsManagerServicer_to_server(
-        ProductsServicer(productsQueueCache, keepAliveCache), server)
+    add_ProductsManagerServicer_to_server(productsServicer, server)
     server.add_insecure_port('[::]:50051')
     server.start()
     print("Server started")

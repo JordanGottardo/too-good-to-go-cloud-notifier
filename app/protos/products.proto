@@ -1,8 +1,23 @@
 syntax = "proto3";
 
 service ProductsManager {
+    rpc StartMonitoring(ProductMonitoringRequest) returns (Empty) {}
+    rpc StopMonitoring(ProductStopMonitoringRequest) returns (Empty) {}
     rpc GetProducts (stream ProductClientMessage) returns (stream ProductServerMessage) {}
  }
+
+message Empty {
+
+}
+
+message ProductMonitoringRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message ProductStopMonitoringRequest {
+	string username = 1;
+}
 
  message ProductClientMessage {
      oneof message {
@@ -12,9 +27,8 @@ service ProductsManager {
  }
 
  message ProductRequest {
-     string username = 1;
-     string password = 2;
- }
+    string username = 1;
+}
 
  message ProductServerMessage {
      oneof message {

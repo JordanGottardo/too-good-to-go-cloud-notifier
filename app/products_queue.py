@@ -35,18 +35,32 @@ class ProductsQueue():
     def __next__(self):
         return self.__next()
 
-    def StopMonitoring(self):
+    def StartMonitoring(self):
+        self.logger.debug("ProductsQueue StartMonitoring")
+        self.client.StartMonitor()
+
+    def RestartMonitoring(self):
+        self.logger.debug("ProductsQueue RestartMonitoring")
+        self.monitoringStopped = False
+
+    def HardStopMonitoring(self):
         with self.keepAliveLock:
-            self.logger.debug("ProductsQueue StopMonitoring")
+            self.logger.debug("ProductsQueue HardStopMonitoring")
             self.periodicalCleanUpTimer.cancel()
             self.keepAliveTimer.cancel()
             self.monitoringStopped = True
             self.client.StopMonitor()
             self.productsIdAndKeepaliveQueue.put(self.__AKeepAliveMessage())
 
+    def SoftStopMonitoring(self):
+        with self.keepAliveLock:
+            self.logger.debug("ProductsQueue SoftStopMonitoring")
+            self.monitoringStopped = True
+            self.productsIdAndKeepaliveQueue.put(self.__AKeepAliveMessage())
+
     def __next(self):
         self.logger.debug(
-            f"There are {self.__GetProductIdQueueLength()} items in queue")
+            f"ProductsQueue There are {self.__GetProductIdQueueLength()} items in queue")
 
         productIdOrKeepalive = self.productsIdAndKeepaliveQueue.get()
 
@@ -67,7 +81,7 @@ class ProductsQueue():
 
         if (self.__IsProductInfoStale(productForStalenessCheck)):
             self.logger.debug(
-                f"Iterator next: product {productId} is stale: removing it")
+                f"ProductsQueue Iterator next: product {productId} is stale: removing it")
             self.productsStaleDictionary.pop(productId)
         return self.__ToProductResponseServerMessage(product)
 
@@ -105,12 +119,12 @@ class ProductsQueue():
                     self.productsDictionary[productId] = product
                     if (not productAlreadySeen):
                         self.logger.debug(
-                            f"New available product with ID {productId} received: inserting")
+                            f"ProductsQueue: New available product with ID {productId} received: inserting")
                         self.productsStaleDictionary[productId] = product
                         toBeInsertedInQueue.append(productId)
                     elif (self.__IsProductInfoStale(self.productsStaleDictionary[productId])):
                         self.logger.debug(
-                            f"Available product {productId} {product.store.name} is stale: updating it")
+                            f"ProductsQueue: Available product {productId} {product.store.name} is stale: updating it")
                         toBeInsertedInQueue.append(productId)
                         self.productsStaleDictionary.pop(productId)
                         self.productsStaleDictionary[productId] = product
@@ -134,7 +148,7 @@ class ProductsQueue():
         for id in productsIdToRemove:
             if (id in self.productsDictionary):
                 self.logger.debug(
-                    f"Formerly available product is no longer available: removing {id} from queue")
+                    f"ProductsQueue: Formerly available product is no longer available: removing {id} from queue")
                 self.productsDictionary.pop(id)
             if (id in self.productsStaleDictionary):
                 self.productsStaleDictionary.pop(id)
@@ -164,7 +178,7 @@ class ProductsQueue():
         self.keepAliveTimer.start()
         with self.keepAliveLock:
             if (not self.queueContainsKeepAlive):
-                self.logger.debug("Adding keepAlive to queue")
+                self.logger.debug("ProductsQueue Adding keepAlive to queue")
                 self.queueContainsKeepAlive = True
                 self.productsIdAndKeepaliveQueue.put(self.__AKeepAliveMessage())
 
