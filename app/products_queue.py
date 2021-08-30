@@ -56,6 +56,7 @@ class ProductsQueue():
         with self.keepAliveLock:
             self.logger.debug("ProductsQueue SoftStopMonitoring")
             self.monitoringStopped = True
+            self.productsIdAndKeepaliveQueue.put(self.__AKeepAliveMessage())
 
     def __next(self):
         self.logger.debug(
