@@ -42,6 +42,7 @@ class ProductsQueue():
     def RestartMonitoring(self):
         self.logger.debug("ProductsQueue RestartMonitoring")
         self.monitoringStopped = False
+        self.productsIdAndKeepaliveQueue.put(self.__AKeepAliveMessage())
 
     def HardStopMonitoring(self):
         with self.keepAliveLock:
