@@ -89,10 +89,9 @@ class ProductsServicer(ProductsManagerServicer):
 
     def __AddChannelClosedCallback(self, context, username):
         def __GrpcChannelClosedCallback():
-            if (self.productsQueueCache.Contains(username)):
-                self.logger.debug(
-                    f"ProductsServicer: GRPC channel has been closed from client, User {username}")
-                self.productsQueueCache.SoftStopMonitoring(username)
+            self.logger.debug(
+                f"ProductsServicer: GRPC channel has been closed from client, User {username}")
+            self.productsQueueCache.SoftStopMonitoring(username)
 
         context.add_callback(__GrpcChannelClosedCallback)
 

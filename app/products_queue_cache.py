@@ -23,11 +23,15 @@ class ProductsQueueCache():
 
     def RestartMonitoring(self, id):
         with self.lock:
-            self.productsQueueDictionary[id].RestartMonitoring()
+            if self.Contains(id):
+                self.productsQueueDictionary[id].RestartMonitoring()
+            else:
+                self.logger.warn(
+                    f"ProductsQueueCache RestartMonitoring: No subscription with {id} ID")
 
     def SoftStopMonitoring(self, id):
         with self.lock:
-            if id in self.productsQueueDictionary:
+            if self.Contains(id):
                 self.productsQueueDictionary[id].SoftStopMonitoring()
             else:
                 self.logger.warn(
@@ -35,7 +39,7 @@ class ProductsQueueCache():
 
     def HardStopMonitoring(self, id):
         with self.lock:
-            if id in self.productsQueueDictionary:
+            if self.Contains(id):
                 self.productsQueueDictionary[id].HardStopMonitoring()
                 self.productsQueueDictionary.pop(id)
             else:
