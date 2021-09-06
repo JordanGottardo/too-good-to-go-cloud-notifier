@@ -12,7 +12,7 @@ class KeepAliveCacheBase(ABC):
         self.__InitLogging()
         self.keepAliveDictionary = {}
         self.productsQueueCache: ProductsQueueCache = productsQueueCache
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.stopSubscriptionStaleTimer = False
 
     @property
@@ -37,12 +37,12 @@ class KeepAliveCacheBase(ABC):
                 self.logger.debug(
                     f"{self.ClassNameForLogging}: Starting subscription stale removal timer")
                 self.stopSubscriptionStaleTimer = False
-                self.__StartStoppingStaleSubscriptions()
+                self.__StartStoppingStaleSubscriptionsTimer()
 
-    def __StartStoppingStaleSubscriptions(self):
+    def __StartStoppingStaleSubscriptionsTimer(self):
         if (not self.stopSubscriptionStaleTimer):
             timer = threading.Timer(
-                30, self.__StartStoppingStaleSubscriptions)
+                30, self.__StartStoppingStaleSubscriptionsTimer)
             timer.daemon = True
             timer.start()
             identifiersToRemove = []

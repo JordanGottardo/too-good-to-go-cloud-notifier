@@ -42,6 +42,9 @@ class ProductsServicer(ProductsManagerServicer):
         productsQueue.StartMonitoring()
         self.productsQueueCache.Add(username, productsQueue)
         self.longLivedKeepAliveCache.AddOrUpdate(username, datetime.now())
+
+        self.logger.info(
+            f"ProductsServicer: Returning from StartMonitoring RPC")
         return Empty()
 
     def StopMonitoring(self, request: ProductStopMonitoringRequest, context):
@@ -49,11 +52,10 @@ class ProductsServicer(ProductsManagerServicer):
             f"ProductsServicer: Received StopMonitoring request for user {request.username}")
         username = request.username
 
-        if (self.productsQueueCache.Contains(username)):
-            self.productsQueueCache.HardStopMonitoring(username)
-        else:
-            self.logger.info(
-                f"ProductsServicer: No subscription for user {username} is active")
+        self.productsQueueCache.HardStopMonitoring(username)
+        
+        self.logger.info(
+            f"ProductsServicer: Returning from StopMonitoring RPC")
 
         return Empty()
 

@@ -13,8 +13,8 @@ class ProductsQueue():
     def __init__(self, tgtgClient: TooGoodToGoClient):
         self.__InitLogging()
         self.logger.info("ProductsQueue constructor")
-        self.productsLock = threading.Lock()
-        self.keepAliveLock = threading.Lock()
+        self.productsLock = threading.RLock()
+        self.keepAliveLock = threading.RLock()
         self.queueContainsKeepAlive = False
         self.monitoringStopped = False
         self.productsIdAndKeepaliveQueue = queue.Queue()

@@ -1,11 +1,11 @@
 import logging
-from threading import Lock
+from threading import RLock
 
 
 class ProductsQueueCache():
 
     def __init__(self):
-        self.lock = Lock()
+        self.lock = RLock()
         self.productsQueueDictionary = {}
         self.__InitLogging()
 
