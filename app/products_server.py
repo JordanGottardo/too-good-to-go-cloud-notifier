@@ -7,9 +7,7 @@ from too_good_to_go_client import TooGoodToGoClient
 from products_queue import ProductsQueue
 import grpc
 from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
-from products_pb2 import Empty, ProductMonitoringRequest, ProductRequest, ProductStopMonitoringRequest
-import random
-import uuid
+from products_pb2 import Empty, ProductMonitoringRequest, ProductStopMonitoringRequest
 import threading
 
 
