@@ -8,7 +8,7 @@ from products_queue import ProductsQueue
 import grpc
 from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
 from products_pb2 import Empty, ProductMonitoringRequest, ProductStopMonitoringRequest
-import threading
+from threading import RLock, Thread
 
 
 class ProductsServicer(ProductsManagerServicer):
@@ -23,39 +23,42 @@ class ProductsServicer(ProductsManagerServicer):
         self.productsQueueCache = productsQueueCache
         self.shortLivedKeepAliveCache = shortLivedKeepAliveCache
         self.longLivedKeepAliveCache = longLivedKeepAliveCache
+        self.subscriptionLock = RLock()
 
     def StartMonitoring(self, request: ProductMonitoringRequest, context):
-        self.logger.info(
-            f"ProductsServicer: Received StartMonitoring request for user {request.username}")
-        username = request.username
+        with self.subscriptionLock:
+            self.logger.info(
+                f"ProductsServicer: Received StartMonitoring request for user {request.username}")
+            username = request.username
 
-        if (self.productsQueueCache.Contains(username)):
-            self.logger.error(
-                f"ProductsServicer: Subscription for user {username} already exists. Either use the GetProducts RPC or Stop then Start subscription")
-            context.abort(grpc.StatusCode.ALREADY_EXISTS,
-                          f"Subscription for user {username} already exists")
+            if (self.productsQueueCache.Contains(username)):
+                self.logger.error(
+                    f"ProductsServicer: Subscription for user {username} already exists. Either use the GetProducts RPC or Stop then Start subscription")
+                context.abort(grpc.StatusCode.ALREADY_EXISTS,
+                            f"Subscription for user {username} already exists")
 
-        client = TooGoodToGoClient(username, request.password)
-        productsQueue = ProductsQueue(client)
-        productsQueue.StartMonitoring()
-        self.productsQueueCache.Add(username, productsQueue)
-        self.longLivedKeepAliveCache.AddOrUpdate(username, datetime.now())
+            client = TooGoodToGoClient(username, request.password)
+            productsQueue = ProductsQueue(client)
+            productsQueue.StartMonitoring()
+            self.productsQueueCache.Add(username, productsQueue)
+            self.longLivedKeepAliveCache.AddOrUpdate(username, datetime.now())
 
-        self.logger.info(
-            f"ProductsServicer: Returning from StartMonitoring RPC")
-        return Empty()
+            self.logger.info(
+                f"ProductsServicer: Returning from StartMonitoring RPC")
+            return Empty()
 
     def StopMonitoring(self, request: ProductStopMonitoringRequest, context):
-        self.logger.info(
-            f"ProductsServicer: Received StopMonitoring request for user {request.username}")
-        username = request.username
+        with self.subscriptionLock:
+            self.logger.info(
+                f"ProductsServicer: Received StopMonitoring request for user {request.username}")
+            username = request.username
 
-        self.productsQueueCache.HardStopMonitoring(username)
-        
-        self.logger.info(
-            f"ProductsServicer: Returning from StopMonitoring RPC")
+            self.productsQueueCache.HardStopMonitoring(username)
+            
+            self.logger.info(
+                f"ProductsServicer: Returning from StopMonitoring RPC")
 
-        return Empty()
+            return Empty()
 
     def GetProducts(self, requestIterator, context):
         productRequest = next(requestIterator).productRequest
@@ -98,7 +101,7 @@ class ProductsServicer(ProductsManagerServicer):
     def __StartReceivingKeepAlivesAsync(self, requestIterator, identifier):
         self.shortLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
         self.longLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
-        thread = threading.Thread(
+        thread = Thread(
             target=self.__StartReceivingKeepAlives, args=(requestIterator, identifier))
         thread.daemon = True
         thread.start()
