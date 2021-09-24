@@ -4,6 +4,7 @@ import logging
 from keep_alive_cache import ShortLivedKeepAliveCache, LongLivedKeepAliveCache
 from products_queue_cache import ProductsQueueCache
 from too_good_to_go_client import TooGoodToGoClient
+from tgtg import TgtgLoginError, TgtgAPIError
 from products_queue import ProductsQueue
 import grpc
 from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
@@ -38,6 +39,8 @@ class ProductsServicer(ProductsManagerServicer):
                             f"Subscription for user {username} already exists")
 
             client = TooGoodToGoClient(username, request.password)
+            self.__FailIfCannotAccessTgTgApi(client, context, username)
+
             productsQueue = ProductsQueue(client)
             productsQueue.StartMonitoring()
             self.productsQueueCache.Add(username, productsQueue)
@@ -119,6 +122,18 @@ class ProductsServicer(ProductsManagerServicer):
         except:
             self.logger.debug(
                 "ProductsServicer: Error while reading keepAlives from client")
+
+    def __FailIfCannotAccessTgTgApi(self, client, context, username):
+        try:
+            client.TestCredentials()
+        except TgtgLoginError:
+            self.logger.error(
+                f"ProductsServicer: Invalid credentials for user {username}")
+            context.abort(grpc.StatusCode.UNAUTHENTICATED, f"Invalid credentials for user {username}")
+        except TgtgAPIError:
+            self.logger.error(
+                f"ProductsServicer: Error while accessing TgTg API for user {username}")
+            context.abort(grpc.StatusCode.INTERNAL, f"Could not access TgTg API {username}")
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")

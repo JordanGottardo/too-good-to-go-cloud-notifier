@@ -30,6 +30,10 @@ class TooGoodToGoClient:
         self.monitoringStopped = True
         self.timer.cancel()
 
+    def TestCredentials(self):
+        self.logger.debug(f"TooGoodToGoClient: Testing credentials for user {self.email}")
+        self.client.get_items()
+
     def __GetProducts(self):
         return self.__ToAvailableProducts(self.client.get_items())
 
