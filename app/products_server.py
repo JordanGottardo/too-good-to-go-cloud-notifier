@@ -36,7 +36,7 @@ class ProductsServicer(ProductsManagerServicer):
                 self.logger.error(
                     f"ProductsServicer: Subscription for user {username} already exists. Either use the GetProducts RPC or Stop then Start subscription")
                 context.abort(grpc.StatusCode.ALREADY_EXISTS,
-                            f"Subscription for user {username} already exists")
+                              f"Subscription for user {username} already exists")
 
             client = TooGoodToGoClient(username, request.password)
             self.__FailIfCannotAccessTgTgApi(client, context, username)
@@ -57,7 +57,7 @@ class ProductsServicer(ProductsManagerServicer):
             username = request.username
 
             self.productsQueueCache.HardStopMonitoring(username)
-            
+
             self.logger.info(
                 f"ProductsServicer: Returning from StopMonitoring RPC")
 
@@ -87,7 +87,7 @@ class ProductsServicer(ProductsManagerServicer):
                     f"ProductsServicer: Sending KeepAlive, user {username}")
             else:
                 self.logger.debug(
-                    f"Gotten {item.productResponse.id} {item.productResponse.store.name} from queue. Returning it to the client. User {username}")
+                    f"Gotten {item.productResponse.id} {item.productResponse.store.name} Price={item.productResponse.price} decimals={item.productResponse.decimals} from queue. Returning it to the client. User {username}")
             yield item
 
         self.logger.debug(
@@ -129,11 +129,13 @@ class ProductsServicer(ProductsManagerServicer):
         except TgtgLoginError:
             self.logger.error(
                 f"ProductsServicer: Invalid credentials for user {username}")
-            context.abort(grpc.StatusCode.UNAUTHENTICATED, f"Invalid credentials for user {username}")
+            context.abort(grpc.StatusCode.UNAUTHENTICATED,
+                          f"Invalid credentials for user {username}")
         except TgtgAPIError:
             self.logger.error(
                 f"ProductsServicer: Error while accessing TgTg API for user {username}")
-            context.abort(grpc.StatusCode.INTERNAL, f"Could not access TgTg API {username}")
+            context.abort(grpc.StatusCode.INTERNAL,
+                          f"Could not access TgTg API {username}")
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
