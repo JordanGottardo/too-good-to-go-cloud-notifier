@@ -21,10 +21,18 @@ class ProductsQueue():
         self.productsDictionary = {}
         self.productsStaleDictionary = {}
         self.client = tgtgClient
-        self.PRODUCT_STALE_INTERVAL_HOURS = int(
-            os.environ["PRODUCT_STALE_INTERVAL_HOURS"])
-        self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS = int(
-            os.environ["PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS"])
+        if ("PRODUCT_STALE_INTERVAL_HOURS" in os.environ):
+            self.PRODUCT_STALE_INTERVAL_HOURS = int(
+                os.environ["PRODUCT_STALE_INTERVAL_HOURS"])
+        else:
+            self.PRODUCT_STALE_INTERVAL_HOURS = 24
+
+        if ("PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS" in os.environ):
+            self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS = int(
+                os.environ["PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS"])
+        else:
+            self.PRODUCTS_QUEUE_CLEANUP_INTERVAL_DAYS = 1
+
         self.client.AddEventHandler(self.__productsReceivedEventHandler)
         self.__StartPeriodicCleanUpTask()
         self.__StartHeartBeatTask()
@@ -181,7 +189,8 @@ class ProductsQueue():
             if (not self.queueContainsKeepAlive):
                 self.logger.debug("ProductsQueue Adding keepAlive to queue")
                 self.queueContainsKeepAlive = True
-                self.productsIdAndKeepaliveQueue.put(self.__AKeepAliveMessage())
+                self.productsIdAndKeepaliveQueue.put(
+                    self.__AKeepAliveMessage())
 
     def __GetProductIdQueueLength(self):
         return str(self.productsIdAndKeepaliveQueue.qsize())
