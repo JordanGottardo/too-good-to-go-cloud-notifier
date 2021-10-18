@@ -102,8 +102,7 @@ class ProductsServicer(ProductsManagerServicer):
         context.add_callback(__GrpcChannelClosedCallback)
 
     def __StartReceivingKeepAlivesAsync(self, requestIterator, identifier):
-        self.shortLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
-        self.longLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
+        self.__UpdatedKeepAliveCache(identifier)
         thread = Thread(
             target=self.__StartReceivingKeepAlives, args=(requestIterator, identifier))
         thread.daemon = True
@@ -115,13 +114,17 @@ class ProductsServicer(ProductsManagerServicer):
                 if (request.HasField("keepAlive")):
                     self.logger.debug(
                         f"ProductsServicer:: Received KeepAlive from client {identifier}")
-                    self.keepAliveCache.AddOrUpdate(identifier, datetime.now())
+                    self.__UpdatedKeepAliveCache(identifier)
                 else:
                     self.logger.debug(
                         f"ProductsServicer: Unknown request received from client {identifier}")
-        except:
+        except Exception as e:
             self.logger.debug(
-                "ProductsServicer: Error while reading keepAlives from client")
+                f"ProductsServicer: Error while reading keepAlives from client. Error: {e}")
+
+    def __UpdatedKeepAliveCache(self, identifier):
+        self.shortLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
+        self.longLivedKeepAliveCache.AddOrUpdate(identifier, datetime.now())
 
     def __FailIfCannotAccessTgTgApi(self, client, context, username):
         try:
