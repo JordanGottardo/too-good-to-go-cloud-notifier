@@ -27,9 +27,8 @@ pip install -r requirements.txt
 python .\app\test_client.py
 ```
 
-Below an example of notification when a product is available.
-![Product notification](https://imgur.com/a/LAZBq7z.png)
-<img src="https://imgur.com/a/LAZBq7z.png">
+Below an example of notification received when a product is available.
+![Product notification](images/product-notification-example.png)
 
 Notice that  [gRPC bidirectional streaming](https://grpc.io/docs/what-is-grpc/core-concepts/#bidirectional-streaming-rpc) has been implemented to retrieve products. Hence, client to server keep alives are required to keep the connection open.
 
