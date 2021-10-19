@@ -1,10 +1,13 @@
-# too-good-to-go-cloud-notifier
-
 **TooGoodToGo Cloud Notifier** is a dockerized server side component which notifies you when your favourite products become available on [TooGoodToGo](https://toogoodtogo.com/en-us).
 
 If you're looking for the client mobile application, visit https://github.com/JordanGottardo/too-good-to-go-notifier-mobile-app.
 
-This component, written in Python, uses [gRPC](https://grpc.io/) to notify when a product is available. Communication with TooGoodToGo API is carried out through the [tgtg-python](https://github.com/ahivert/tgtg-python/) client.
+## Architecture
+
+This component, written in Python, uses [gRPC](https://grpc.io/) to notify when a product is available. Communication with TooGoodToGo API is carried out through the [tgtg-python](https://github.com/ahivert/tgtg-python/) client. 
+
+Below you can see an high level system architecture.
+<img src="images/architecture.png" />
 
 Disclaimer: TooGoodToGo Cloud Notifier requires TooGoodToGo username and password (i.e., the same credentials you use to log into the TooGoodToGo mobile app) in order to access your favourite products. These credentials are only used to access the APIs and are not stored in any way.
 
