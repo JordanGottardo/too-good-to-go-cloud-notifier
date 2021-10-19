@@ -22,8 +22,7 @@ A sample gRPC Python client is included in the _app/test_client.py_ file. You ca
 You can launch the test client by creating a Pyhon virtual environment and installing requirements using the following commands (requires Python 3.9):
 ```
 python -m venv venv
-.\venv2\Scripts\activate
-pip install requirements.txt
+.\venv\Scripts\activate
 pip install -r requirements.txt
 python .\app\test_client.py
 ```
