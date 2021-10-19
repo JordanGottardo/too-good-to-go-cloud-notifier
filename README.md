@@ -19,7 +19,7 @@ Now the server is reachable through _localhost:50051_.
 
 A sample gRPC Python client is included in the _app/test_client.py_ file. You can use it for testing purposes by inserting your credentials into the code.
 
-You can launch the test client by creating a Pyhon virtual environment and installing requirements using the following commands (requires Python 3.9)
+You can launch the test client by creating a Pyhon virtual environment and installing requirements using the following commands (requires Python 3.9):
 ```
 python -m venv venv
 .\venv2\Scripts\activate
