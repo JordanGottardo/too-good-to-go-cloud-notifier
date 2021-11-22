@@ -132,11 +132,13 @@ class ProductsServicer(ProductsManagerServicer):
         except TgtgLoginError:
             self.logger.error(
                 f"ProductsServicer: Invalid credentials for user {username}")
+            self.logger.exception("")
             context.abort(grpc.StatusCode.UNAUTHENTICATED,
                           f"Invalid credentials for user {username}")
         except TgtgAPIError:
             self.logger.error(
                 f"ProductsServicer: Error while accessing TgTg API for user {username}")
+            self.logger.exception("")
             context.abort(grpc.StatusCode.INTERNAL,
                           f"Could not access TgTg API {username}")
 
