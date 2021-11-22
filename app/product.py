@@ -4,8 +4,8 @@ from datetime import datetime
 class Product:
     def __init__(self, productFromClient):
         self.id = productFromClient["item"]["item_id"]
-        self.price = productFromClient["item"]["price"]["minor_units"]
-        self.decimals = productFromClient["item"]["price"]["decimals"]
+        self.price = productFromClient["item"]["price_including_taxes"]["minor_units"]
+        self.decimals = productFromClient["item"]["price_including_taxes"]["decimals"]
         self.pickupLocation = productFromClient["pickup_location"]["address"]["address_line"]
         self.isAvailable = productFromClient["items_available"] > 0
         self.store = Store(productFromClient["store"])
