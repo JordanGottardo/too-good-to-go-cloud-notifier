@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0eproducts.proto\"\x07\n\x05\x45mpty\">\n\x18ProductMonitoringRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"0\n\x1cProductStopMonitoringRequest\x12\x10\n\x08username\x18\x01 \x01(\t\"m\n\x14ProductClientMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12)\n\x0eproductRequest\x18\x02 \x01(\x0b\x32\x0f.ProductRequestH\x00\x42\t\n\x07message\"\"\n\x0eProductRequest\x12\x10\n\x08username\x18\x01 \x01(\t\"o\n\x14ProductServerMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12+\n\x0fproductResponse\x18\x02 \x01(\x0b\x32\x10.ProductResponseH\x00\x42\t\n\x07message\"\x0b\n\tKeepAlive\"m\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x05\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\x05\x12\x16\n\x0epickupLocation\x18\x04 \x01(\t\x12\x15\n\x05store\x18\x05 \x01(\x0b\x32\x06.Store\"4\n\x05Store\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x0c\n\x04\x63ity\x18\x03 \x01(\t2\xc7\x01\n\x0fProductsManager\x12\x36\n\x0fStartMonitoring\x12\x19.ProductMonitoringRequest\x1a\x06.Empty\"\x00\x12\x39\n\x0eStopMonitoring\x12\x1d.ProductStopMonitoringRequest\x1a\x06.Empty\"\x00\x12\x41\n\x0bGetProducts\x12\x15.ProductClientMessage\x1a\x15.ProductServerMessage\"\x00(\x01\x30\x01\x62\x06proto3'
+  serialized_pb=b'\n\x0eproducts.proto\"\x07\n\x05\x45mpty\",\n\x18ProductMonitoringRequest\x12\x10\n\x08username\x18\x01 \x01(\t\"0\n\x1cProductStopMonitoringRequest\x12\x10\n\x08username\x18\x01 \x01(\t\"m\n\x14ProductClientMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12)\n\x0eproductRequest\x18\x02 \x01(\x0b\x32\x0f.ProductRequestH\x00\x42\t\n\x07message\"\"\n\x0eProductRequest\x12\x10\n\x08username\x18\x01 \x01(\t\"o\n\x14ProductServerMessage\x12\x1f\n\tkeepAlive\x18\x01 \x01(\x0b\x32\n.KeepAliveH\x00\x12+\n\x0fproductResponse\x18\x02 \x01(\x0b\x32\x10.ProductResponseH\x00\x42\t\n\x07message\"\x0b\n\tKeepAlive\"m\n\x0fProductResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x05\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\x05\x12\x16\n\x0epickupLocation\x18\x04 \x01(\t\x12\x15\n\x05store\x18\x05 \x01(\x0b\x32\x06.Store\"4\n\x05Store\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x0c\n\x04\x63ity\x18\x03 \x01(\t2\xc7\x01\n\x0fProductsManager\x12\x36\n\x0fStartMonitoring\x12\x19.ProductMonitoringRequest\x1a\x06.Empty\"\x00\x12\x39\n\x0eStopMonitoring\x12\x1d.ProductStopMonitoringRequest\x1a\x06.Empty\"\x00\x12\x41\n\x0bGetProducts\x12\x15.ProductClientMessage\x1a\x15.ProductServerMessage\"\x00(\x01\x30\x01\x62\x06proto3'
 )
 
 
@@ -65,13 +65,6 @@ _PRODUCTMONITORINGREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='password', full_name='ProductMonitoringRequest.password', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -85,7 +78,7 @@ _PRODUCTMONITORINGREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=27,
-  serialized_end=89,
+  serialized_end=71,
 )
 
 
@@ -116,8 +109,8 @@ _PRODUCTSTOPMONITORINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=91,
-  serialized_end=139,
+  serialized_start=73,
+  serialized_end=121,
 )
 
 
@@ -160,8 +153,8 @@ _PRODUCTCLIENTMESSAGE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=141,
-  serialized_end=250,
+  serialized_start=123,
+  serialized_end=232,
 )
 
 
@@ -192,8 +185,8 @@ _PRODUCTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=252,
-  serialized_end=286,
+  serialized_start=234,
+  serialized_end=268,
 )
 
 
@@ -236,8 +229,8 @@ _PRODUCTSERVERMESSAGE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=288,
-  serialized_end=399,
+  serialized_start=270,
+  serialized_end=381,
 )
 
 
@@ -261,8 +254,8 @@ _KEEPALIVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=401,
-  serialized_end=412,
+  serialized_start=383,
+  serialized_end=394,
 )
 
 
@@ -321,8 +314,8 @@ _PRODUCTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=414,
-  serialized_end=523,
+  serialized_start=396,
+  serialized_end=505,
 )
 
 
@@ -367,8 +360,8 @@ _STORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=525,
-  serialized_end=577,
+  serialized_start=507,
+  serialized_end=559,
 )
 
 _PRODUCTCLIENTMESSAGE.fields_by_name['keepAlive'].message_type = _KEEPALIVE
@@ -471,8 +464,8 @@ _PRODUCTSMANAGER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=580,
-  serialized_end=779,
+  serialized_start=562,
+  serialized_end=761,
   methods=[
   _descriptor.MethodDescriptor(
     name='StartMonitoring',

@@ -7,15 +7,14 @@ import logging
 
 class TooGoodToGoClient:
 
-    def __init__(self, email, password):
+    def __init__(self, email):
         self.__InitLogging()
 
         self.logger.info(
             f"TooGoodToGoClient Constructor: initializing for user {email}")
 
         self.email = email
-        self.password = password
-        self.client = TgtgClient(email=email, password=password)
+        self.client = TgtgClient(email=email)
         self.event = Event()
         self.monitoringStopped = False
 
@@ -33,6 +32,10 @@ class TooGoodToGoClient:
     def TestCredentials(self):
         self.logger.debug(f"TooGoodToGoClient: Testing credentials for user {self.email}")
         self.client.get_items()
+
+    def GetCredentials(self):
+        self.logger.debug(f"TooGoodToGoClient: Getting credentials for user {self.email}")
+        self.client.get_credentials
 
     def __GetProducts(self):
         return self.__ToAvailableProducts(self.client.get_items())

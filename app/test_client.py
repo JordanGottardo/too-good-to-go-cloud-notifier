@@ -7,7 +7,6 @@ import threading
 import time
 
 username="username"
-password="password"
 
 def run():
     credentials = grpc.ssl_channel_credentials()
@@ -24,7 +23,7 @@ def run():
         stub = products_pb2_grpc.ProductsManagerStub(channel)
 
         try:
-            startMonitoringRequest = products_pb2.ProductMonitoringRequest(username=username, password=password)
+            startMonitoringRequest = products_pb2.ProductMonitoringRequest(username=username)
             stub.StartMonitoring(startMonitoringRequest)
         except:
             pass

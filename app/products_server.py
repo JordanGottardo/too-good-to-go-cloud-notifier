@@ -1,6 +1,8 @@
 from concurrent import futures
 from datetime import datetime
 import logging
+
+from tgtg.exceptions import TgtgPollingError
 from keep_alive_cache import ShortLivedKeepAliveCache, LongLivedKeepAliveCache
 from products_queue_cache import ProductsQueueCache
 from too_good_to_go_client import TooGoodToGoClient
@@ -38,7 +40,10 @@ class ProductsServicer(ProductsManagerServicer):
                 context.abort(grpc.StatusCode.ALREADY_EXISTS,
                               f"Subscription for user {username} already exists")
 
-            client = TooGoodToGoClient(username, request.password)
+            client = TooGoodToGoClient(username)
+
+            self.__GetCredentialsOrFail(client, context, username)
+
             self.__FailIfCannotAccessTgTgApi(client, context, username)
 
             productsQueue = ProductsQueue(client)
@@ -141,6 +146,15 @@ class ProductsServicer(ProductsManagerServicer):
             self.logger.exception("")
             context.abort(grpc.StatusCode.INTERNAL,
                           f"Could not access TgTg API {username}")
+
+    def __GetCredentialsOrFail(self, client: TooGoodToGoClient, context, username):
+        try:
+            client.GetCredentials()
+        except TgtgPollingError:
+            self.logger.error(
+                f"ProductsServicer: Error while retrieving TgTg credentials for user {username}")
+            context.abort(grpc.StatusCode.UNAUTHENTICATED,
+                          f"Error while retrieving TgTg credentials for user {username}. Ensure you clicked on the link in the email (from your PC)")
 
     def __InitLogging(self):
         logging.basicConfig(format="%(threadName)s:%(message)s")
