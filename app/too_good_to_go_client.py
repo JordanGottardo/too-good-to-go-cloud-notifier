@@ -35,7 +35,7 @@ class TooGoodToGoClient:
 
     def GetCredentials(self):
         self.logger.debug(f"TooGoodToGoClient: Getting credentials for user {self.email}")
-        self.client.get_credentials
+        self.client.get_credentials()
 
     def __GetProducts(self):
         return self.__ToAvailableProducts(self.client.get_items())
