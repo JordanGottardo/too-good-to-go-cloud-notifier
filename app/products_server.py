@@ -6,7 +6,7 @@ from tgtg.exceptions import TgtgPollingError
 from keep_alive_cache import ShortLivedKeepAliveCache, LongLivedKeepAliveCache
 from products_queue_cache import ProductsQueueCache
 from too_good_to_go_client import TooGoodToGoClient
-from tgtg import TgtgLoginError, TgtgAPIError
+from tgtg import TgtgLoginError, TgtgAPIError, TgtgClient
 from products_queue import ProductsQueue
 import grpc
 from products_pb2_grpc import ProductsManagerServicer, add_ProductsManagerServicer_to_server
@@ -40,7 +40,12 @@ class ProductsServicer(ProductsManagerServicer):
                 context.abort(grpc.StatusCode.ALREADY_EXISTS,
                               f"Subscription for user {username} already exists")
 
-            client = TooGoodToGoClient(username)
+            # client = TooGoodToGoClient(username)
+            # client.PrintCredentials()
+            client = TooGoodToGoClient(
+                access_token="e30.eyJzdWIiOiIxMDQ1ODAxMSIsImV4cCI6MTY0NzY5NjU4OSwidCI6ImVWUmlJVVNOVHV5XzBOVkQ4R1p4Vnc6MDoxIn0.B77G5l10Lh_ibw87AHom3D5M2qpHFsk7dw9UBWqK5Yo",
+                refresh_token="e30.eyJzdWIiOiIxMDQ1ODAxMSIsImV4cCI6MTY3OTA1OTc4OSwidCI6IkxKTHhMSWdnUlF1YnVIZDV6a0c2ZWc6MDowIn0.brL3sHNjjERy0c77HhhJSX-TKNY-7iW3mBaHfzcN3Gg",
+                user_id="10458011")
 
             self.__GetCredentialsOrFail(client, context, username)
 

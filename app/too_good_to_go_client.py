@@ -7,14 +7,18 @@ import logging
 
 class TooGoodToGoClient:
 
-    def __init__(self, email):
+    def __init__(self, email="", access_token="", refresh_token="", user_id=""):
         self.__InitLogging()
 
         self.logger.info(
             f"TooGoodToGoClient Constructor: initializing for user {email}")
 
-        self.email = email
-        self.client = TgtgClient(email=email)
+        client = TgtgClient(access_token=access_token,
+                            refresh_token=refresh_token,
+                            user_id=user_id)
+
+        # self.email = email
+        # self.client = TgtgClient(email=email)
         self.event = Event()
         self.monitoringStopped = False
 
@@ -30,12 +34,17 @@ class TooGoodToGoClient:
         self.timer.cancel()
 
     def TestCredentials(self):
-        self.logger.debug(f"TooGoodToGoClient: Testing credentials for user {self.email}")
+        self.logger.debug(
+            f"TooGoodToGoClient: Testing credentials for user {self.email}")
         self.client.get_items()
 
     def GetCredentials(self):
-        self.logger.debug(f"TooGoodToGoClient: Getting credentials for user {self.email}")
+        self.logger.debug(
+            f"TooGoodToGoClient: Getting credentials for user {self.email}")
         self.client.get_credentials()
+
+    def PrintCredentials(self):
+        self.logger.debug(f"Credentials: {self.client.get_credentials()}")
 
     def __GetProducts(self):
         return self.__ToAvailableProducts(self.client.get_items())
