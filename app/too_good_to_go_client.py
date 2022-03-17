@@ -51,7 +51,7 @@ class TooGoodToGoClient:
 
     def __GetProductsPeriodically(self):
         if (not self.monitoringStopped):
-            self.timer = threading.Timer(30, self.__GetProductsPeriodically)
+            self.timer = threading.Timer(120, self.__GetProductsPeriodically)
             self.timer.daemon = True
             self.timer.start()
             self.event(self.__GetProducts())
