@@ -47,7 +47,7 @@ class ProductsServicer(ProductsManagerServicer):
                 refresh_token="e30.eyJzdWIiOiIxMDQ1ODAxMSIsImV4cCI6MTY3OTA1OTc4OSwidCI6IkxKTHhMSWdnUlF1YnVIZDV6a0c2ZWc6MDowIn0.brL3sHNjjERy0c77HhhJSX-TKNY-7iW3mBaHfzcN3Gg",
                 user_id="10458011")
 
-            self.__GetCredentialsOrFail(client, context, username)
+            # self.__GetCredentialsOrFail(client, context, username)
 
             self.__FailIfCannotAccessTgTgApi(client, context, username)
 
